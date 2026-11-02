@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Mission Stars</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#eef4fb; --surface:#ffffff; --surface2:#f4f8fd;
+    --ink:#22304a; --ink-soft:#5a6b8c; --line:#d7e2f0;
+    --coral:#f2603c; --coral-dark:#d94a28;
+    --teal:#0e9594; --teal-dark:#0a7473;
+    --sun:#ffb703; --sun-soft:#fff3cf;
+    --sky:#3a86ff; --pink:#ef5d8f;
+    --good:#1e9e6a; --bad:#d64545;
+    --shadow:0 3px 0 rgba(34,48,74,.14);
+    --card-shadow:0 6px 18px rgba(34,48,74,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141b2e; --surface:#1f2942; --surface2:#263354;
+      --ink:#eef2fb; --ink-soft:#a9b8d6; --line:#35466b;
+      --sun-soft:#3d3413;
+      --shadow:0 3px 0 rgba(0,0,0,.4);
+      --card-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:17px; line-height:1.45;
+    padding:0 14px calc(28px + env(safe-area-inset-bottom));
+  }
+  h1,h2,h3,.display{font-family:"Baloo 2","Nunito",system-ui,sans-serif; line-height:1.15; margin:0;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit; font-size:16px; color:var(--ink);}
+  :focus-visible{outline:3px solid var(--sky); outline-offset:2px;}
+
+  .wrap{max-width:960px; margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header.top{padding:20px 2px 8px;}
+  .title-row{display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  h1{font-size:clamp(30px,6vw,44px); font-weight:800; letter-spacing:.2px;}
+  h1 .star{color:var(--sun); text-shadow:0 2px 0 rgba(0,0,0,.08);}
+  .subtitle{color:var(--ink-soft); font-weight:700; margin-top:2px; font-size:15px;}
+
+  /* ---------- Kid cards ---------- */
+  .kids{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; margin:14px 0 4px;}
+  .kid-card{
+    background:var(--surface); border:3px solid var(--line); border-radius:20px;
+    padding:14px 16px; text-align:left; width:100%; box-shadow:var(--card-shadow);
+    display:flex; gap:12px; align-items:center; min-height:86px;
+  }
+  .kid-card.active{border-color:var(--kidcolor,var(--teal)); box-shadow:0 0 0 3px color-mix(in srgb, var(--kidcolor,var(--teal)) 25%, transparent), var(--card-shadow);}
+  .kid-emoji{font-size:40px; line-height:1; width:58px; height:58px; flex:0 0 58px; display:flex; align-items:center; justify-content:center; background:var(--surface2); border-radius:16px;}
+  .kid-name{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:21px;}
+  .kid-balance{font-weight:900; font-size:19px; color:var(--ink);}
+  .kid-balance .n{font-size:26px;}
+  .progress{height:10px; background:var(--surface2); border-radius:99px; overflow:hidden; margin-top:6px; border:1px solid var(--line);}
+  .progress > div{height:100%; background:var(--kidcolor,var(--teal)); border-radius:99px; transition:width .5s ease;}
+  .progress-label{font-size:12.5px; color:var(--ink-soft); font-weight:800; margin-top:3px;}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex; gap:8px; margin:16px 0 14px; flex-wrap:wrap; position:sticky; top:0; background:var(--bg); padding:10px 0 8px; z-index:20;}
+  .tab{
+    border:3px solid var(--line); background:var(--surface); color:var(--ink);
+    border-radius:999px; padding:10px 18px; font-weight:900; font-size:16px; min-height:48px;
+    box-shadow:var(--shadow);
+  }
+  .tab.active{background:var(--ink); color:var(--bg); border-color:var(--ink);}
+  .tab.parent-tab.active{background:var(--coral); border-color:var(--coral); color:#fff;}
+  .tab .badge{background:var(--coral); color:#fff; border-radius:99px; font-size:12px; padding:1px 7px; margin-left:6px; vertical-align:2px;}
+
+  /* ---------- Panels & cards ---------- */
+  .panel{display:none;}
+  .panel.show{display:block;}
+  .group-title{font-size:22px; font-weight:800; margin:20px 0 10px; display:flex; align-items:center; gap:8px;}
+  .group-title:first-child{margin-top:4px;}
+  .group-title .reset-note{font-family:"Nunito",sans-serif; font-size:13px; font-weight:800; color:var(--ink-soft);}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px;}
+  .card{
+    background:var(--surface); border:2px solid var(--line); border-radius:18px;
+    padding:14px; box-shadow:var(--card-shadow); display:flex; flex-direction:column; gap:8px;
+  }
+  .card-top{display:flex; gap:12px; align-items:flex-start;}
+  .card-emoji{font-size:34px; line-height:1.1; width:52px; height:52px; flex:0 0 52px; display:flex; align-items:center; justify-content:center; background:var(--surface2); border-radius:14px;}
+  .card-name{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:19px;}
+  .card-meta{font-size:13.5px; color:var(--ink-soft); font-weight:800;}
+  .stars-chip{display:inline-flex; align-items:center; gap:4px; background:var(--sun-soft); color:var(--ink); font-weight:900; border-radius:99px; padding:3px 11px; font-size:15px; border:1.5px solid var(--sun); white-space:nowrap;}
+  .stars-chip.neg{background:transparent; border-color:var(--bad); color:var(--bad);}
+  .pre-chip{display:inline-block; background:var(--teal); color:#fff; font-weight:900; font-size:12.5px; border-radius:99px; padding:3px 10px;}
+  .assign-chip{display:inline-block; background:var(--surface2); border:1.5px solid var(--line); font-weight:800; font-size:12.5px; border-radius:99px; padding:2px 9px; margin:0 4px 4px 0;}
+
+  .btn{
+    border:none; border-radius:14px; padding:12px 18px; font-weight:900; font-size:16px;
+    min-height:50px; box-shadow:var(--shadow); background:var(--surface2); color:var(--ink);
+    border:2px solid var(--line);
+  }
+  .btn:active{transform:translateY(2px); box-shadow:none;}
+  .btn.primary{background:var(--teal); border-color:var(--teal-dark); color:#fff;}
+  .btn.coral{background:var(--coral); border-color:var(--coral-dark); color:#fff;}
+  .btn.sun{background:var(--sun); border-color:#e09c00; color:#3d2c00;}
+  .btn.ghost{background:var(--surface); }
+  .btn.small{min-height:42px; padding:8px 13px; font-size:14.5px; border-radius:11px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed; transform:none;}
+  .btn.danger-zone{color:var(--bad); border-color:var(--bad);}
+  .btn.confirming{background:var(--bad); color:#fff; border-color:var(--bad);}
+  .card.done{opacity:.75;}
+  .done-banner{font-weight:900; color:var(--good); font-size:16px; display:flex; align-items:center; gap:6px; min-height:50px;}
+
+  .empty{
+    background:var(--surface); border:2.5px dashed var(--line); border-radius:18px;
+    padding:26px 18px; text-align:center; color:var(--ink-soft); font-weight:800;
+  }
+  .empty .big{font-size:38px; display:block; margin-bottom:6px;}
+
+  /* ---------- Pending banner ---------- */
+  .pending-banner{
+    background:var(--sun-soft); border:2.5px solid var(--sun); border-radius:16px;
+    padding:12px 16px; margin:0 0 14px; font-weight:800;
+  }
+  .pending-banner div{margin:3px 0;}
+
+  /* ---------- Parent sections ---------- */
+  .section{
+    background:var(--surface); border:2px solid var(--line); border-radius:18px;
+    padding:18px; margin:0 0 16px; box-shadow:var(--card-shadow);
+  }
+  .section > h2{font-size:23px; font-weight:800; margin-bottom:4px;}
+  .section .hint{color:var(--ink-soft); font-weight:700; font-size:14.5px; margin:0 0 12px;}
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin-bottom:10px;}
+  .field label{display:block; font-weight:900; font-size:13.5px; margin-bottom:4px; color:var(--ink-soft); text-transform:none;}
+  .field input,.field select{
+    width:100%; padding:11px 12px; border:2px solid var(--line); border-radius:11px; background:var(--surface); min-height:48px;
+  }
+  .check-row{display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 10px;}
+  .check-pill{
+    display:inline-flex; align-items:center; gap:7px; border:2px solid var(--line); border-radius:99px;
+    padding:9px 14px; font-weight:900; background:var(--surface); cursor:pointer; min-height:44px; font-size:15px;
+  }
+  .check-pill input{width:20px; height:20px; accent-color:var(--teal); margin:0;}
+  .check-pill.on{border-color:var(--teal); background:var(--surface2);}
+  .toggle-row{display:flex; align-items:center; gap:10px; font-weight:900; margin:6px 0 12px;}
+  .toggle-row input{width:24px; height:24px; accent-color:var(--teal);}
+  .manage-list{display:flex; flex-direction:column; gap:8px; margin-top:12px;}
+  .manage-item{
+    display:flex; align-items:center; gap:10px; background:var(--surface2); border:1.5px solid var(--line);
+    border-radius:13px; padding:9px 12px; flex-wrap:wrap;
+  }
+  .manage-item .grow{flex:1 1 140px; font-weight:800;}
+  .manage-item .sub{display:block; font-size:13px; color:var(--ink-soft); font-weight:800;}
+  .rule-item .apply{margin-left:auto;}
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:760px){ .split{grid-template-columns:1fr;} }
+  .subhead{font-family:"Baloo 2",sans-serif; font-size:19px; font-weight:800; margin:16px 0 8px;}
+  .subhead:first-of-type{margin-top:2px;}
+
+  /* ---------- History ---------- */
+  .history-list{display:flex; flex-direction:column; gap:8px;}
+  .hist{
+    background:var(--surface); border:2px solid var(--line); border-radius:13px; padding:10px 14px;
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .hist .grow{flex:1 1 180px; font-weight:800;}
+  .hist .when{display:block; font-size:13px; color:var(--ink-soft); font-weight:700;}
+  .delta{font-weight:900; font-size:17px; white-space:nowrap;}
+  .delta.plus{color:var(--good);} .delta.minus{color:var(--bad);}
+  .tag{font-size:11.5px; font-weight:900; border-radius:99px; padding:2px 8px; background:var(--surface2); border:1.5px solid var(--line); text-transform:uppercase; letter-spacing:.4px;}
+  .tag.bonus{border-color:var(--good); color:var(--good);}
+  .tag.penalty{border-color:var(--bad); color:var(--bad);}
+
+  /* ---------- Modal / PIN pad ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,22,40,.55); display:none;
+    align-items:center; justify-content:center; padding:16px; z-index:60;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--surface); color:var(--ink); border-radius:22px; padding:22px;
+    width:100%; max-width:360px; box-shadow:0 18px 50px rgba(0,0,0,.35); text-align:center;
+  }
+  .modal h2{font-size:24px; margin-bottom:6px;}
+  .modal p{color:var(--ink-soft); font-weight:700; margin:0 0 12px; font-size:15px;}
+  .pin-dots{display:flex; gap:10px; justify-content:center; margin:14px 0 18px; min-height:18px;}
+  .pin-dots span{width:17px; height:17px; border-radius:50%; border:3px solid var(--ink-soft);}
+  .pin-dots span.fill{background:var(--coral); border-color:var(--coral);}
+  .pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .pad button{
+    font-size:24px; font-weight:900; padding:14px 0; border-radius:14px; min-height:60px;
+    background:var(--surface2); border:2px solid var(--line); color:var(--ink); box-shadow:var(--shadow);
+  }
+  .pad button:active{transform:translateY(2px); box-shadow:none;}
+  .pad button.util{font-size:15px;}
+  .shake{animation:shake .35s;}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+  .modal .link-btn{background:none; border:none; color:var(--sky); font-weight:900; font-size:15px; margin-top:14px; text-decoration:underline; min-height:44px;}
+
+  /* ---------- Toast & burst ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:calc(22px + env(safe-area-inset-bottom)); transform:translate(-50%,90px);
+    background:var(--ink); color:var(--bg); font-weight:900; font-size:16.5px; border-radius:99px;
+    padding:13px 22px; z-index:80; transition:transform .3s ease; max-width:92vw; text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.3); pointer-events:none;
+  }
+  .toast.show{transform:translate(-50%,0);}
+  .burst-star{position:fixed; font-size:26px; z-index:90; pointer-events:none; animation:burst 0.9s ease-out forwards;}
+  @keyframes burst{0%{opacity:1; transform:translate(0,0) scale(.6) rotate(0deg);}100%{opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.25) rotate(140deg);}}
+  @media (prefers-reduced-motion: reduce){
+    .burst-star{display:none;} .shake{animation:none;} html{scroll-behavior:auto;}
+    .progress > div{transition:none;}
+  }
+
+  footer{margin-top:26px; color:var(--ink-soft); font-weight:700; font-size:14px; text-align:center;}
+  footer p{margin:5px 0;}
+  .sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="title-row">
+      <div>
+        <h1><span class="star">★</span> Mission Stars</h1>
+        <p class="subtitle">Do chores, earn stars, trade them for rewards.</p>
+      </div>
+    </div>
+    <div class="kids" id="kidCards" role="group" aria-label="Choose a kid"></div>
+  </header>
+
+  <nav class="tabs" aria-label="Main sections">
+    <button class="tab active" data-tab="chores" type="button">⭐ Chores</button>
+    <button class="tab" data-tab="rewards" type="button">🎁 Rewards</button>
+    <button class="tab" data-tab="history" type="button">📜 History</button>
+    <button class="tab parent-tab" data-tab="parent" type="button" id="parentTabBtn">🔒 Parent</button>
+  </nav>
+
+  <!-- ============ CHORES ============ -->
+  <section class="panel show" id="panel-chores">
+    <div id="pendingBanner"></div>
+    <div id="choreGroups"></div>
+  </section>
+
+  <!-- ============ REWARDS ============ -->
+  <section class="panel" id="panel-rewards">
+    <div id="rewardGridWrap"></div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="panel" id="panel-history">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="btn ghost small" id="undoBtn" type="button">↩ Undo last entry</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </section>
+
+  <!-- ============ PARENT ============ -->
+  <section class="panel" id="panel-parent">
+    <div id="parentLocked" class="empty">
+      <span class="big">🔒</span>
+      Parent controls are locked.<br />
+      <button class="btn coral" id="unlockBtn" type="button" style="margin-top:12px;">Open Parent Controls</button>
+    </div>
+
+    <div id="parentBody" hidden>
+
+      <div class="section" id="approvalsSection">
+        <h2>Reward approvals</h2>
+        <p class="hint">Rewards that aren't pre-approved wait here. Approving spends the stars; declining keeps them.</p>
+        <div id="approvalsList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Bonus &amp; penalty stars</h2>
+        <p class="hint">Apply one on the spot, or tap a saved rule. Penalties never take a balance below zero.</p>
+
+        <h3 class="subhead">⭐ Give a bonus</h3>
+        <div class="form-grid">
+          <div class="field"><label for="bonusKid">Kid</label><select id="bonusKid"></select></div>
+          <div class="field"><label for="bonusAmt">Stars</label><input id="bonusAmt" type="number" min="1" max="99" value="3" inputmode="numeric" /></div>
+          <div class="field"><label for="bonusReason">Reason</label><input id="bonusReason" type="text" placeholder="Helped without being asked" maxlength="60" /></div>
+        </div>
+        <button class="btn primary" id="bonusApply" type="button">Give bonus stars</button>
+        <div class="manage-list" id="bonusRulesList"></div>
+        <h3 class="subhead">Add / edit a bonus rule</h3>
+        <div class="form-grid">
+          <div class="field"><label for="bonusRuleName">Rule</label><input id="bonusRuleName" type="text" placeholder="Great listening" maxlength="60" /></div>
+          <div class="field"><label for="bonusRuleAmt">Stars</label><input id="bonusRuleAmt" type="number" min="1" max="99" value="2" inputmode="numeric" /></div>
+        </div>
+        <button class="btn ghost small" id="bonusRuleSave" type="button">Save bonus rule</button>
+        <button class="btn ghost small" id="bonusRuleCancel" type="button" hidden>Cancel edit</button>
+
+        <h3 class="subhead" style="margin-top:26px;">➖ Apply a penalty</h3>
+        <div class="form-grid">
+          <div class="field"><label for="penKid">Kid</label><select id="penKid"></select></div>
+          <div class="field"><label for="penAmt">Stars to take</label><input id="penAmt" type="number" min="1" max="99" value="2" inputmode="numeric" /></div>
+          <div class="field"><label for="penReason">Reason</label><input id="penReason" type="text" placeholder="Not listening after warnings" maxlength="60" /></div>
+        </div>
+        <button class="btn coral" id="penApply" type="button">Apply penalty</button>
+        <div class="manage-list" id="penRulesList"></div>
+        <h3 class="subhead">Add / edit a penalty rule</h3>
+        <div class="form-grid">
+          <div class="field"><label for="penRuleName">Rule</label><input id="penRuleName" type="text" placeholder="Unkind hands" maxlength="60" /></div>
+          <div class="field"><label for="penRuleAmt">Stars to take</label><input id="penRuleAmt" type="number" min="1" max="99" value="2" inputmode="numeric" /></div>
+        </div>
+        <button class="btn ghost small" id="penRuleSave" type="button">Save penalty rule</button>
+        <button class="btn ghost small" id="penRuleCancel" type="button" hidden>Cancel edit</button>
+      </div>
+
+      <div class="section">
+        <h2>Kids</h2>
+        <p class="hint">Add a kid, or tap Edit to change a name, emoji, or color.</p>
+        <div class="form-grid">
+          <div class="field"><label for="kidName">Name</label><input id="kidName" type="text" placeholder="Name" maxlength="24" /></div>
+          <div class="field"><label for="kidEmoji">Emoji</label>
+            <select id="kidEmoji">
+              <option>🦁</option><option>🐯</option><option>🦊</option><option>🐰</option><option>🦄</option>
+              <option>🐼</option><option>🚀</option><option>🌈</option><option>⚽</option><option>🎨</option>
+              <option>🦖</option><option>🐳</option><option>🦋</option><option>🐢</option><option>⭐</option>
+            </select></div>
+          <div class="field"><label for="kidColor">Color</label>
+            <select id="kidColor">
+              <option value="#0e9594">Teal</option><option value="#f2603c">Coral</option>
+              <option value="#3a86ff">Blue</option><option value="#ef5d8f">Pink</option>
+              <option value="#ffb703">Sunny</option><option value="#1e9e6a">Green</option>
+              <option value="#7c5cd6">Grape</option>
+            </select></div>
+        </div>
+        <button class="btn primary small" id="kidSave" type="button">Add kid</button>
+        <button class="btn ghost small" id="kidCancel" type="button" hidden>Cancel edit</button>
+        <div class="manage-list" id="kidManageList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Chores</h2>
+        <p class="hint">Tick every kid who can earn this chore — one kid, some kids, or everyone. Daily chores reset each morning; weekly chores reset each Monday.</p>
+        <div class="form-grid">
+          <div class="field"><label for="choreName">Chore</label><input id="choreName" type="text" placeholder="Tidy up toys" maxlength="50" /></div>
+          <div class="field"><label for="choreEmoji">Emoji</label>
+            <select id="choreEmoji">
+              <option>🧹</option><option>🛏️</option><option>🪥</option><option>🧸</option><option>🍽️</option>
+              <option>📚</option><option>👕</option><option>🐶</option><option>🪴</option><option>🎹</option>
+              <option>🧼</option><option>🚿</option><option>🗑️</option><option>💛</option><option>✏️</option>
+            </select></div>
+          <div class="field"><label for="choreStars">Stars</label><input id="choreStars" type="number" min="1" max="50" value="2" inputmode="numeric" /></div>
+          <div class="field"><label for="choreFreq">How often</label>
+            <select id="choreFreq">
+              <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="anytime">Anytime</option>
+            </select></div>
+        </div>
+        <div class="field"><label>Who can do it?</label><div class="check-row" id="choreKids"></div></div>
+        <button class="btn primary small" id="choreSave" type="button">Add chore</button>
+        <button class="btn ghost small" id="choreCancel" type="button" hidden>Cancel edit</button>
+        <div class="manage-list" id="choreManageList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Rewards shop</h2>
+        <p class="hint">Pre-approved rewards (⚡) are redeemed instantly by kids. Others wait for your approval above.</p>
+        <div class="form-grid">
+          <div class="field"><label for="rewardName">Reward</label><input id="rewardName" type="text" placeholder="Pick a movie" maxlength="50" /></div>
+          <div class="field"><label for="rewardEmoji">Emoji</label>
+            <select id="rewardEmoji">
+              <option>🎬</option><option>🍦</option><option>🍰</option><option>📱</option><option>🌳</option>
+              <option>📖</option><option>🧩</option><option>🎁</option><option>🌙</option><option>🏊</option>
+              <option>🎨</option><option>🍕</option>
+            </select></div>
+          <div class="field"><label for="rewardCost">Star cost</label><input id="rewardCost" type="number" min="1" max="999" value="15" inputmode="numeric" /></div>
+        </div>
+        <label class="toggle-row"><input type="checkbox" id="rewardPre" /> ⚡ Pre-approved — kids can get it instantly</label>
+        <button class="btn primary small" id="rewardSave" type="button">Add reward</button>
+        <button class="btn ghost small" id="rewardCancel" type="button" hidden>Cancel edit</button>
+        <div class="manage-list" id="rewardManageList"></div>
+      </div>
+
+      <div class="section">
+        <h2>Parent PIN &amp; chart data</h2>
+        <p class="hint" id="pinStatus">No PIN set — anyone who opens Parent mode gets in.</p>
+        <div class="form-grid" id="pinSetForm">
+          <div class="field"><label for="pinNew">New PIN (4–6 digits)</label><input id="pinNew" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autocomplete="off" /></div>
+          <div class="field"><label for="pinConfirm">Type it again</label><input id="pinConfirm" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autocomplete="off" /></div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn sun small" id="pinSave" type="button">Save PIN</button>
+          <button class="btn ghost small danger-zone" id="pinRemove" type="button" hidden>Remove PIN</button>
+          <button class="btn ghost small" id="lockNow" type="button">Lock Parent mode now</button>
+        </div>
+        <h3 class="subhead">Starter pack &amp; reset</h3>
+        <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules. Anything you already have won't be duplicated.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn ghost small" id="loadDefaults" type="button">Add starter pack</button>
+          <button class="btn ghost small danger-zone" id="resetAll" type="button">Erase everything &amp; start over</button>
+        </div>
+        <p class="hint" style="margin-top:14px;">This chart saves on this device only. Open it in Safari on iPad or Silk on Kindle Fire, then use “Add to Home Screen” to keep it on the home screen like an app. Each device keeps its own chart — stars don't sync between devices.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <footer>
+    <p>⭐ Earned today counts reset each morning · weekly chores reset on Mondays.</p>
+    <p>Saved on this device — no account, no Muse needed.</p>
+  </footer>
+</div>
+
+<!-- PIN overlay -->
+<div class="overlay" id="pinOverlay" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <div class="modal" id="pinModal">
+    <h2 id="pinTitle">Parent PIN</h2>
+    <p>Enter your PIN to open Parent controls.</p>
+    <div class="pin-dots" id="pinDots" aria-hidden="true"></div>
+    <p class="sr-only" id="pinSrStatus">0 digits entered</p>
+    <div class="pad" id="pinPad">
+      <button type="button" data-d="1">1</button><button type="button" data-d="2">2</button><button type="button" data-d="3">3</button>
+      <button type="button" data-d="4">4</button><button type="button" data-d="5">5</button><button type="button" data-d="6">6</button>
+      <button type="button" data-d="7">7</button><button type="button" data-d="8">8</button><button type="button" data-d="9">9</button>
+      <button type="button" class="util" data-d="clear">Clear</button><button type="button" data-d="0">0</button><button type="button" class="util" data-d="back">⌫</button>
+    </div>
+    <button class="link-btn" id="pinCancel" type="button">Cancel</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var KEY = "mission-stars-v1";
+  var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+
+  /* ---------------- Defaults ---------------- */
+  function defaultData(){
+    var k1 = uid(), k2 = uid();
+    return {
+      kids: [
+        {id:k1, name:"Older Kid", emoji:"🦁", color:"#0e9594", stars:0},
+        {id:k2, name:"Younger Kid", emoji:"🌈", color:"#ef5d8f", stars:0}
+      ],
+      chores: [
+        {id:uid(), name:"Brush teeth — morning", emoji:"🪥", stars:1, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Brush teeth — bedtime", emoji:"🪥", stars:1, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Make the bed", emoji:"🛏️", stars:2, freq:"daily", kidIds:[k1]},
+        {id:uid(), name:"Tidy up toys", emoji:"🧸", stars:2, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Clear your plate", emoji:"🍽️", stars:1, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Clothes in the laundry basket", emoji:"👕", stars:1, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Reading or homework — 15 minutes", emoji:"📚", stars:3, freq:"daily", kidIds:[k1]},
+        {id:uid(), name:"Set the table", emoji:"🍽️", stars:2, freq:"daily", kidIds:[k1]},
+        {id:uid(), name:"Water the plants", emoji:"🪴", stars:2, freq:"daily", kidIds:[k1,k2]},
+        {id:uid(), name:"Clean your room", emoji:"🧹", stars:5, freq:"weekly", kidIds:[k1]},
+        {id:uid(), name:"Sort the laundry", emoji:"🧼", stars:3, freq:"weekly", kidIds:[k1]},
+        {id:uid(), name:"Be kind — help someone", emoji:"💛", stars:2, freq:"anytime", kidIds:[k1,k2]}
+      ],
+      rewards: [
+        {id:uid(), name:"Choose a sticker", emoji:"🎁", cost:5, pre:true},
+        {id:uid(), name:"Pick tonight's dessert", emoji:"🍰", cost:10, pre:true},
+        {id:uid(), name:"15 extra minutes of screen time", emoji:"📱", cost:15, pre:true},
+        {id:uid(), name:"Trip to the park", emoji:"🌳", cost:15, pre:true},
+        {id:uid(), name:"Pick a movie for family night", emoji:"🎬", cost:20, pre:false},
+        {id:uid(), name:"Ice cream outing", emoji:"🍦", cost:30, pre:false},
+        {id:uid(), name:"Stay up 30 minutes late", emoji:"🌙", cost:35, pre:false},
+        {id:uid(), name:"A new book", emoji:"📖", cost:40, pre:false},
+        {id:uid(), name:"Pick a fun weekend outing", emoji:"🎨", cost:60, pre:false}
+      ],
+      bonusRules: [
+        {id:uid(), name:"Helped without being asked", stars:3},
+        {id:uid(), name:"Listened the first time", stars:2},
+        {id:uid(), name:"Kind to a sibling", stars:2},
+        {id:uid(), name:"Finished homework early", stars:3},
+        {id:uid(), name:"Cleaned up an extra mess", stars:3},
+        {id:uid(), name:"Brave at the doctor or dentist", stars:5}
+      ],
+      penaltyRules: [
+        {id:uid(), name:"Not listening after two warnings", stars:2},
+        {id:uid(), name:"Unkind hands (hitting or pushing)", stars:3},
+        {id:uid(), name:"Left a mess after a reminder", stars:1},
+        {id:uid(), name:"Broke a screen-time rule", stars:2},
+        {id:uid(), name:"Bedtime stalling after lights-out", stars:1}
+      ],
+      history: [], pending: [], completions: {},
+      pin: "", activeKidId: k1
+    };
+  }
+
+  /* ---------------- State ---------------- */
+  var state = load();
+  var parentUnlocked = false;
+  var editKidId = null, editChoreId = null, editRewardId = null, editBonusRuleId = null, editPenRuleId = null;
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) {
+        var d = JSON.parse(raw);
+        if (d && Array.isArray(d.kids) && Array.isArray(d.chores)) return d;
+      }
+    } catch(e) {}
+    var fresh = defaultData();
+    try { localStorage.setItem(KEY, JSON.stringify(fresh)); } catch(e) {}
+    return fresh;
+  }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
+
+  function kidById(id){ for (var i=0;i<state.kids.length;i++) if (state.kids[i].id===id) return state.kids[i]; return null; }
+  function activeKid(){
+    var k = kidById(state.activeKidId);
+    if (!k && state.kids.length) { k = state.kids[0]; state.activeKidId = k.id; }
+    return k;
+  }
+  function clampStars(k){ if (k.stars < 0) k.stars = 0; }
+
+  /* ---------------- Periods ---------------- */
+  function pad2(n){ return (n<10?"0":"")+n; }
+  function todayKey(d){ d = d||new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
+  function weekKey(d){
+    d = d||new Date();
+    var copy = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var day = (copy.getDay()+6)%7; copy.setDate(copy.getDate()-day); // Monday
+    return "W"+todayKey(copy);
+  }
+  function periodKey(freq){
+    if (freq==="daily") return todayKey();
+    if (freq==="weekly") return weekKey();
+    return "any";
+  }
+  function isDone(chore, kidId){
+    if (chore.freq==="anytime") return false;
+    return !!state.completions[chore.id+"|"+kidId+"|"+periodKey(chore.freq)];
+  }
+
+  /* ---------------- Toast & burst ---------------- */
+  var toastTimer = null;
+  function toast(msg){
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  }
+  function burst(x, y){
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    for (var i=0;i<10;i++){
+      var s = document.createElement("span");
+      s.className = "burst-star"; s.textContent = "⭐";
+      var ang = (Math.PI*2*i)/10 + Math.random()*0.5, dist = 60+Math.random()*70;
+      s.style.setProperty("--dx", Math.cos(ang)*dist+"px");
+      s.style.setProperty("--dy", Math.sin(ang)*dist+"px");
+      s.style.left = (x-13)+"px"; s.style.top = (y-13)+"px";
+      document.body.appendChild(s);
+      (function(el){ setTimeout(function(){ el.remove(); }, 950); })(s);
+    }
+  }
+
+  /* ---------------- History ---------------- */
+  function logEvent(kid, type, label, stars, extra){
+    var e = {id:uid(), kidId:kid?kid.id:"", kidName:kid?kid.name:"", type:type, label:label, stars:stars, ts:Date.now()};
+    if (extra) for (var k in extra) e[k]=extra[k];
+    state.history.unshift(e);
+    if (state.history.length > 200) state.history.length = 200;
+    return e;
+  }
+
+  /* ---------------- Render: kids ---------------- */
+  function renderKids(){
+    var wrap = $("kidCards");
+    if (!state.kids.length){
+      wrap.innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big">👋</span>No kids yet — a parent can add them in Parent controls.</div>';
+      return;
+    }
+    var act = activeKid();
+    wrap.innerHTML = state.kids.map(function(k){
+      var next = null;
+      state.rewards.forEach(function(r){ if (r.cost > k.stars && (next===null || r.cost < next.cost)) next = r; });
+      var pct, label;
+      if (!state.rewards.length){ pct = 0; label = "Add rewards in Parent controls"; }
+      else if (!next){ pct = 100; label = "Can afford every reward! 🎉"; }
+      else { pct = Math.min(100, Math.round(k.stars/next.cost*100)); label = (next.cost-k.stars)+" more ★ for "+esc(next.name); }
+      return '<button type="button" class="kid-card'+(act && k.id===act.id?' active':'')+'" data-kid="'+k.id+'" style="--kidcolor:'+esc(k.color||"#0e9594")+'" aria-pressed="'+(act && k.id===act.id)+'">'
+        + '<span class="kid-emoji">'+esc(k.emoji)+'</span>'
+        + '<span style="flex:1; min-width:0;"><span class="kid-name">'+esc(k.name)+'</span><br />'
+        + '<span class="kid-balance"><span class="n">'+k.stars+'</span> ⭐ stars</span>'
+        + '<span class="progress"><div style="width:'+pct+'%"></div></span>'
+        + '<span class="progress-label">'+label+'</span></span></button>';
+    }).join("");
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-kid]"), function(btn){
+      btn.addEventListener("click", function(){
+        state.activeKidId = btn.getAttribute("data-kid"); save(); renderAll();
+      });
+    });
+  }
+
+  /* ---------------- Render: chores ---------------- */
+  function choreCard(chore, kid){
+    var done = isDone(chore, kid.id);
+    var names = chore.kidIds.map(function(id){ var k=kidById(id); return k?k.name:null; }).filter(Boolean);
+    var html = '<div class="card'+(done?' done':'')+'"><div class="card-top">'
+      + '<span class="card-emoji">'+esc(chore.emoji)+'</span>'
+      + '<span style="flex:1; min-width:0;"><span class="card-name">'+esc(chore.name)+'</span><br />'
+      + '<span class="card-meta">'+(chore.freq==="daily"?"Every day":chore.freq==="weekly"?"Once a week":"Any time")+(names.length>1 ? " · For: "+esc(names.join(", ")) : "")+'</span></span>'
+      + '<span class="stars-chip">+'+chore.stars+' ⭐</span></div>';
+    if (done) html += '<div class="done-banner">✅ Done — great job!</div>';
+    else html += '<button type="button" class="btn primary" data-do-chore="'+chore.id+'">I did it! ⭐</button>';
+    return html + '</div>';
+  }
+  function renderChores(){
+    var kid = activeKid();
+    var banner = $("pendingBanner");
+    var mine = state.pending.filter(function(p){ return kid && p.kidId===kid.id; });
+    if (kid && mine.length){
+      banner.innerHTML = '<div class="pending-banner">⏳ Waiting for a parent: ' + mine.map(function(p){
+        var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
+        return esc(r?r.name:"a reward")+" ("+p.cost+" ⭐)";
+      }).join(", ") + '</div>';
+    } else banner.innerHTML = "";
+
+    var groups = $("choreGroups");
+    if (!kid){ groups.innerHTML = '<div class="empty"><span class="big">⭐</span>Add a kid in Parent controls to start earning stars.</div>'; return; }
+    var mine2 = state.chores.filter(function(c){ return c.kidIds.indexOf(kid.id) > -1; });
+    if (!mine2.length){ groups.innerHTML = '<div class="empty"><span class="big">🧹</span>No chores for '+esc(kid.name)+' yet — a parent can add some in Parent controls.</div>'; return; }
+    var sections = [
+      {freq:"daily", title:"☀️ Today", note:"reset every morning"},
+      {freq:"weekly", title:"🗓️ This week", note:"reset every Monday"},
+      {freq:"anytime", title:"✨ Any time", note:"earn as often as you like"}
+    ];
+    groups.innerHTML = sections.map(function(s){
+      var list = mine2.filter(function(c){ return c.freq===s.freq; });
+      if (!list.length) return "";
+      return '<h2 class="group-title">'+s.title+' <span class="reset-note">· '+s.note+'</span></h2><div class="grid">'
+        + list.map(function(c){ return choreCard(c, kid); }).join("") + '</div>';
+    }).join("");
+    Array.prototype.forEach.call(groups.querySelectorAll("[data-do-chore]"), function(btn){
+      btn.addEventListener("click", function(ev){
+        doChore(btn.getAttribute("data-do-chore"), ev);
+      });
+    });
+  }
+  function doChore(choreId, ev){
+    var kid = activeKid(); if (!kid) return;
+    var chore = null; state.chores.forEach(function(c){ if (c.id===choreId) chore=c; });
+    if (!chore || isDone(chore, kid.id)) return;
+    kid.stars += chore.stars;
+    var pk = periodKey(chore.freq);
+    if (chore.freq !== "anytime") state.completions[chore.id+"|"+kid.id+"|"+pk] = true;
+    logEvent(kid, "chore", chore.name, chore.stars, {choreId:chore.id, pkey:pk, freq:chore.freq});
+    save();
+    if (ev && ev.clientX) burst(ev.clientX, ev.clientY);
+    toast("⭐ +"+chore.stars+" stars for "+kid.name+"!");
+    renderAll();
+  }
+
+  /* ---------------- Render: rewards ---------------- */
+  function renderRewards(){
+    var kid = activeKid();
+    var wrap = $("rewardGridWrap");
+    if (!state.rewards.length){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>No rewards yet — a parent can add some in Parent controls.</div>'; return; }
+    if (!kid){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>Add a kid first, then rewards can be redeemed.</div>'; return; }
+    var waiting = {};
+    state.pending.forEach(function(p){ if (p.kidId===kid.id) waiting[p.rewardId]=true; });
+    wrap.innerHTML = '<div class="grid">' + state.rewards.map(function(r){
+      var afford = kid.stars >= r.cost;
+      var isWaiting = !!waiting[r.id];
+      var btn;
+      if (isWaiting) btn = '<button type="button" class="btn" disabled>⏳ Waiting for a parent…</button>';
+      else if (!afford) btn = '<button type="button" class="btn" disabled>Need '+(r.cost-kid.stars)+' more ⭐</button>';
+      else if (r.pre) btn = '<button type="button" class="btn sun" data-redeem="'+r.id+'">Get it now! 🎉</button>';
+      else btn = '<button type="button" class="btn coral" data-redeem="'+r.id+'">I want this!</button>';
+      return '<div class="card"><div class="card-top"><span class="card-emoji">'+esc(r.emoji)+'</span>'
+        + '<span style="flex:1; min-width:0;"><span class="card-name">'+esc(r.name)+'</span><br />'
+        + (r.pre ? '<span class="pre-chip">⚡ Pre-approved</span>' : '<span class="card-meta">Asks a parent first</span>')
+        + '</span><span class="stars-chip">'+r.cost+' ⭐</span></div>' + btn + '</div>';
+    }).join("") + '</div>';
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-redeem]"), function(btn){
+      btn.addEventListener("click", function(ev){ redeem(btn.getAttribute("data-redeem"), ev); });
+    });
+  }
+  function redeem(rewardId, ev){
+    var kid = activeKid(); if (!kid) return;
+    var r = null; state.rewards.forEach(function(x){ if (x.id===rewardId) r=x; });
+    if (!r || kid.stars < r.cost) return;
+    if (r.pre){
+      kid.stars -= r.cost; clampStars(kid);
+      logEvent(kid, "redeem", r.name+" (pre-approved)", -r.cost);
+      save();
+      if (ev && ev.clientX) burst(ev.clientX, ev.clientY);
+      toast("🎉 "+kid.name+" got: "+r.name+"!");
+    } else {
+      state.pending.push({id:uid(), kidId:kid.id, rewardId:r.id, cost:r.cost, ts:Date.now()});
+      save();
+      toast("Sent to a parent for approval 👍");
+    }
+    renderAll();
+  }
+
+  /* ---------------- Render: history ---------------- */
+  function fmtWhen(ts){
+    var d = new Date(ts);
+    return d.toLocaleDateString(undefined,{month:"short", day:"numeric"}) + " · " + d.toLocaleTimeString(undefined,{hour:"numeric", minute:"2-digit"});
+  }
+  function renderHistory(){
+    var list = $("historyList");
+    if (!state.history.length){ list.innerHTML = '<div class="empty"><span class="big">📜</span>Nothing yet — stars earned, bonuses, penalties, and rewards will show up here.</div>'; return; }
+    list.innerHTML = state.history.map(function(e){
+      var tag = e.type==="bonus" ? '<span class="tag bonus">Bonus</span>' : e.type==="penalty" ? '<span class="tag penalty">Penalty</span>' : e.type==="chore" ? '<span class="tag">Chore</span>' : '<span class="tag">Reward</span>';
+      var delta = e.stars > 0 ? '<span class="delta plus">+'+e.stars+' ⭐</span>' : e.stars < 0 ? '<span class="delta minus">'+e.stars+' ⭐</span>' : '<span class="delta">0 ⭐</span>';
+      return '<div class="hist">'+tag+'<span class="grow">'+esc(e.kidName)+' — '+esc(e.label)+'<span class="when">'+fmtWhen(e.ts)+'</span></span>'+delta+'</div>';
+    }).join("");
+  }
+
+  /* ---------------- Render: parent ---------------- */
+  function kidOptions(sel, selectedId){
+    sel.innerHTML = state.kids.map(function(k){ return '<option value="'+k.id+'"'+(k.id===selectedId?' selected':'')+'>'+esc(k.name)+'</option>'; }).join("");
+  }
+  function renderParent(){
+    var locked = $("parentLocked"), body = $("parentBody");
+    if (!parentUnlocked){ locked.style.display="block"; body.hidden = true; return; }
+    locked.style.display="none"; body.hidden = false;
+
+    // Approvals
+    var al = $("approvalsList");
+    if (!state.pending.length) al.innerHTML = '<p class="hint" style="margin:0;">Nothing waiting right now.</p>';
+    else al.innerHTML = state.pending.map(function(p){
+      var k = kidById(p.kidId);
+      var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
+      return '<div class="manage-item"><span class="grow">'+esc(k?k.name:"Kid")+' wants: '+esc(r?r.name:"a reward")+'<span class="sub">'+p.cost+' ⭐ · balance now '+(k?k.stars:0)+' ⭐</span></span>'
+        + '<button type="button" class="btn primary small" data-approve="'+p.id+'">Yes ✓</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-decline="'+p.id+'">No</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(al.querySelectorAll("[data-approve]"), function(b){ b.addEventListener("click", function(){ decide(b.getAttribute("data-approve"), true); }); });
+    Array.prototype.forEach.call(al.querySelectorAll("[data-decline]"), function(b){ b.addEventListener("click", function(){ decide(b.getAttribute("data-decline"), false); }); });
+
+    // Bonus / penalty kid selects (keep selection)
+    var bk = $("bonusKid"), pk = $("penKid");
+    var bSel = bk.value || state.activeKidId, pSel = pk.value || state.activeKidId;
+    kidOptions(bk, bSel); kidOptions(pk, pSel);
+
+    renderRules();
+    renderManageLists();
+    renderChoreKidChecks();
+
+    // PIN status
+    var has = !!state.pin;
+    $("pinStatus").textContent = has ? "A PIN is set — Parent mode asks for it every time it opens." : "No PIN set — anyone who opens Parent mode gets in. Set one below.";
+    $("pinRemove").hidden = !has;
+    $("pinSave").textContent = has ? "Change PIN" : "Save PIN";
+  }
+
+  function decide(pendingId, ok){
+    var idx = -1, p = null;
+    state.pending.forEach(function(x,i){ if (x.id===pendingId){ idx=i; p=x; } });
+    if (!p) return;
+    var k = kidById(p.kidId);
+    var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
+    state.pending.splice(idx,1);
+    if (ok && k){
+      if (k.stars >= p.cost){
+        k.stars -= p.cost; clampStars(k);
+        logEvent(k, "redeem", (r?r.name:"Reward")+" (approved)", -p.cost);
+        toast("Approved — "+k.name+" got "+(r?r.name:"the reward")+" 🎉");
+      } else {
+        toast(k.name+" doesn't have enough stars anymore — nothing spent.");
+      }
+    } else if (k) {
+      logEvent(k, "redeem", (r?r.name:"Reward")+" (not approved — no stars spent)", 0);
+      toast("Declined — "+k.name+" keeps the stars.");
+    }
+    save(); renderAll();
+  }
+
+  function renderRules(){
+    var bl = $("bonusRulesList");
+    bl.innerHTML = state.bonusRules.length ? state.bonusRules.map(function(r){
+      return '<div class="manage-item rule-item"><span class="grow">'+esc(r.name)+'<span class="sub">+'+r.stars+' ⭐</span></span>'
+        + '<button type="button" class="btn primary small apply" data-bonus-rule="'+r.id+'">Give</button>'
+        + '<button type="button" class="btn ghost small" data-bonus-edit="'+r.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="bonusRule:'+r.id+'">Delete</button></div>';
+    }).join("") : '<p class="hint">No bonus rules yet — add one below.</p>';
+    var pl = $("penRulesList");
+    pl.innerHTML = state.penaltyRules.length ? state.penaltyRules.map(function(r){
+      return '<div class="manage-item rule-item"><span class="grow">'+esc(r.name)+'<span class="sub">−'+r.stars+' ⭐</span></span>'
+        + '<button type="button" class="btn coral small apply" data-pen-rule="'+r.id+'">Apply</button>'
+        + '<button type="button" class="btn ghost small" data-pen-edit="'+r.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="penRule:'+r.id+'">Delete</button></div>';
+    }).join("") : '<p class="hint">No penalty rules yet — add one below.</p>';
+
+    Array.prototype.forEach.call(bl.querySelectorAll("[data-bonus-rule]"), function(b){ b.addEventListener("click", function(){ applyRule("bonus", b.getAttribute("data-bonus-rule")); }); });
+    Array.prototype.forEach.call(pl.querySelectorAll("[data-pen-rule]"), function(b){ b.addEventListener("click", function(){ applyRule("penalty", b.getAttribute("data-pen-rule")); }); });
+    Array.prototype.forEach.call(bl.querySelectorAll("[data-bonus-edit]"), function(b){ b.addEventListener("click", function(){ editRule("bonus", b.getAttribute("data-bonus-edit")); }); });
+    Array.prototype.forEach.call(pl.querySelectorAll("[data-pen-edit]"), function(b){ b.addEventListener("click", function(){ editRule("penalty", b.getAttribute("data-pen-edit")); }); });
+    wireDeletes(bl); wireDeletes(pl);
+  }
+
+  function applyRule(kind, ruleId){
+    var list = kind==="bonus" ? state.bonusRules : state.penaltyRules;
+    var rule = null; list.forEach(function(r){ if (r.id===ruleId) rule=r; });
+    var kidSel = kind==="bonus" ? $("bonusKid") : $("penKid");
+    var kid = kidById(kidSel.value) || activeKid();
+    if (!rule || !kid) return;
+    if (kind==="bonus"){
+      kid.stars += rule.stars;
+      logEvent(kid, "bonus", rule.name, rule.stars);
+      toast("⭐ +"+rule.stars+" bonus for "+kid.name+": "+rule.name);
+    } else {
+      var take = Math.min(rule.stars, kid.stars);
+      kid.stars -= take; clampStars(kid);
+      logEvent(kid, "penalty", rule.name, -take);
+      toast(take>0 ? "−"+take+" ⭐ from "+kid.name+": "+rule.name : kid.name+" is already at 0 ⭐ — nothing taken.");
+    }
+    save(); renderAll();
+  }
+
+  function editRule(kind, id){
+    if (kind==="bonus"){
+      var r = null; state.bonusRules.forEach(function(x){ if (x.id===id) r=x; }); if (!r) return;
+      editBonusRuleId = id; $("bonusRuleName").value = r.name; $("bonusRuleAmt").value = r.stars;
+      $("bonusRuleSave").textContent = "Save changes"; $("bonusRuleCancel").hidden = false;
+      $("bonusRuleName").focus();
+    } else {
+      var q = null; state.penaltyRules.forEach(function(x){ if (x.id===id) q=x; }); if (!q) return;
+      editPenRuleId = id; $("penRuleName").value = q.name; $("penRuleAmt").value = q.stars;
+      $("penRuleSave").textContent = "Save changes"; $("penRuleCancel").hidden = false;
+      $("penRuleName").focus();
+    }
+  }
+
+  /* ---------------- Manage lists ---------------- */
+  function wireDeletes(container){
+    Array.prototype.forEach.call(container.querySelectorAll("[data-del]"), function(btn){
+      btn.addEventListener("click", function(){
+        if (btn.getAttribute("data-armed")){
+          var parts = btn.getAttribute("data-del").split(":"); deleteItem(parts[0], parts[1]);
+        } else {
+          btn.setAttribute("data-armed","1"); btn.textContent = "Tap again to delete"; btn.classList.add("confirming");
+          setTimeout(function(){ btn.removeAttribute("data-armed"); btn.textContent="Delete"; btn.classList.remove("confirming"); }, 3000);
+        }
+      });
+    });
+  }
+  function deleteItem(kind, id){
+    if (kind==="kid"){
+      state.kids = state.kids.filter(function(k){ return k.id!==id; });
+      state.chores.forEach(function(c){ c.kidIds = c.kidIds.filter(function(x){ return x!==id; }); });
+      state.pending = state.pending.filter(function(p){ return p.kidId!==id; });
+      if (state.activeKidId===id) state.activeKidId = state.kids.length ? state.kids[0].id : "";
+      toast("Kid removed.");
+    } else if (kind==="chore"){ state.chores = state.chores.filter(function(c){ return c.id!==id; }); toast("Chore removed."); }
+    else if (kind==="reward"){ state.rewards = state.rewards.filter(function(r){ return r.id!==id; }); state.pending = state.pending.filter(function(p){ return p.rewardId!==id; }); toast("Reward removed."); }
+    else if (kind==="bonusRule"){ state.bonusRules = state.bonusRules.filter(function(r){ return r.id!==id; }); toast("Bonus rule removed."); }
+    else if (kind==="penRule"){ state.penaltyRules = state.penaltyRules.filter(function(r){ return r.id!==id; }); toast("Penalty rule removed."); }
+    save(); renderAll();
+  }
+
+  function renderManageLists(){
+    var kl = $("kidManageList");
+    kl.innerHTML = state.kids.map(function(k){
+      return '<div class="manage-item"><span style="font-size:24px;">'+esc(k.emoji)+'</span><span class="grow">'+esc(k.name)+'<span class="sub">'+k.stars+' ⭐</span></span>'
+        + '<button type="button" class="btn ghost small" data-kid-edit="'+k.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="kid:'+k.id+'">Delete</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(kl.querySelectorAll("[data-kid-edit]"), function(b){
+      b.addEventListener("click", function(){
+        var k = kidById(b.getAttribute("data-kid-edit")); if (!k) return;
+        editKidId = k.id; $("kidName").value = k.name; $("kidEmoji").value = k.emoji; $("kidColor").value = k.color;
+        $("kidSave").textContent = "Save changes"; $("kidCancel").hidden = false; $("kidName").focus();
+      });
+    });
+
+    var cl = $("choreManageList");
+    cl.innerHTML = state.chores.map(function(c){
+      var names = c.kidIds.map(function(id){ var k=kidById(id); return k?k.name:null; }).filter(Boolean);
+      var who = names.length===state.kids.length && state.kids.length>1 ? "Everyone" : (names.join(", ") || "Nobody");
+      return '<div class="manage-item"><span style="font-size:24px;">'+esc(c.emoji)+'</span><span class="grow">'+esc(c.name)
+        + '<span class="sub">+'+c.stars+' ⭐ · '+c.freq+' · '+esc(who)+'</span></span>'
+        + '<button type="button" class="btn ghost small" data-chore-edit="'+c.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="chore:'+c.id+'">Delete</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(cl.querySelectorAll("[data-chore-edit]"), function(b){
+      b.addEventListener("click", function(){
+        var c = null; state.chores.forEach(function(x){ if (x.id===b.getAttribute("data-chore-edit")) c=x; }); if (!c) return;
+        editChoreId = c.id; $("choreName").value = c.name; $("choreEmoji").value = c.emoji; $("choreStars").value = c.stars; $("choreFreq").value = c.freq;
+        renderChoreKidChecks(c.kidIds);
+        $("choreSave").textContent = "Save changes"; $("choreCancel").hidden = false; $("choreName").focus();
+      });
+    });
+
+    var rl = $("rewardManageList");
+    rl.innerHTML = state.rewards.map(function(r){
+      return '<div class="manage-item"><span style="font-size:24px;">'+esc(r.emoji)+'</span><span class="grow">'+esc(r.name)
+        + '<span class="sub">'+r.cost+' ⭐ · '+(r.pre ? "⚡ pre-approved" : "needs approval")+'</span></span>'
+        + '<button type="button" class="btn ghost small" data-reward-edit="'+r.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="reward:'+r.id+'">Delete</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(rl.querySelectorAll("[data-reward-edit]"), function(b){
+      b.addEventListener("click", function(){
+        var r = null; state.rewards.forEach(function(x){ if (x.id===b.getAttribute("data-reward-edit")) r=x; }); if (!r) return;
+        editRewardId = r.id; $("rewardName").value = r.name; $("rewardEmoji").value = r.emoji; $("rewardCost").value = r.cost; $("rewardPre").checked = !!r.pre;
+        $("rewardSave").textContent = "Save changes"; $("rewardCancel").hidden = false; $("rewardName").focus();
+      });
+    });
+    wireDeletes(kl); wireDeletes(cl); wireDeletes(rl);
+  }
+
+  function renderChoreKidChecks(checkedIds){
+    var current = checkedIds || null;
+    if (!current){
+      current = [];
+      Array.prototype.forEach.call($("choreKids").querySelectorAll("input:checked"), function(i){ current.push(i.value); });
+      if (!current.length && editChoreId){
+        var c = null; state.chores.forEach(function(x){ if (x.id===editChoreId) c=x; });
+        if (c) current = c.kidIds.slice();
+      }
+    }
+    $("choreKids").innerHTML = state.kids.map(function(k){
+      var on = current.indexOf(k.id) > -1;
+      return '<label class="check-pill'+(on?' on':'')+'"><input type="checkbox" value="'+k.id+'"'+(on?' checked':'')+' /> '+esc(k.emoji)+" "+esc(k.name)+'</label>';
+    }).join("") || '<span class="hint">Add a kid first.</span>';
+    Array.prototype.forEach.call($("choreKids").querySelectorAll("input"), function(inp){
+      inp.addEventListener("change", function(){ inp.closest(".check-pill").classList.toggle("on", inp.checked); });
+    });
+  }
+
+  /* ---------------- Tabs & PIN gate ---------------- */
+  var currentTab = "chores";
+  function showTab(name){
+    currentTab = name;
+    Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+      t.classList.toggle("active", t.getAttribute("data-tab")===name);
+    });
+    ["chores","rewards","history","parent"].forEach(function(n){
+      $("panel-"+n).classList.toggle("show", n===name);
+    });
+    var btn = $("parentTabBtn");
+    btn.innerHTML = parentUnlocked ? "🔓 Parent" : "🔒 Parent" + (state.pending.length ? '<span class="badge">'+state.pending.length+'</span>' : "");
+    if (name==="parent") renderParent();
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
+    t.addEventListener("click", function(){
+      var name = t.getAttribute("data-tab");
+      if (name==="parent" && !parentUnlocked && state.pin){ openPin(function(){ showTab("parent"); }); return; }
+      if (name==="parent" && !parentUnlocked && !state.pin){ parentUnlocked = true; }
+      showTab(name);
+    });
+  });
+  $("unlockBtn").addEventListener("click", function(){
+    if (state.pin) openPin(function(){ renderParent(); });
+    else { parentUnlocked = true; renderParent(); showTab("parent"); }
+  });
+  $("lockNow").addEventListener("click", function(){
+    parentUnlocked = false; toast("Parent mode locked 🔒"); showTab("chores"); renderAll();
+  });
+
+  /* PIN pad */
+  var pinBuffer = "", pinCallback = null;
+  function drawDots(){
+    var len = state.pin ? state.pin.length : 6;
+    var dots = "";
+    for (var i=0;i<Math.max(len, pinBuffer.length);i++) dots += '<span class="'+(i<pinBuffer.length?'fill':'')+'"></span>';
+    $("pinDots").innerHTML = dots;
+    $("pinSrStatus").textContent = pinBuffer.length + " digits entered";
+  }
+  function openPin(cb){
+    pinBuffer = ""; pinCallback = cb; drawDots();
+    $("pinModal").classList.remove("shake");
+    $("pinOverlay").classList.add("show");
+  }
+  function closePin(){ $("pinOverlay").classList.remove("show"); pinCallback = null; pinBuffer=""; }
+  $("pinCancel").addEventListener("click", closePin);
+  $("pinPad").addEventListener("click", function(ev){
+    var b = ev.target.closest("button"); if (!b) return;
+    var d = b.getAttribute("data-d");
+    if (d==="clear") pinBuffer = "";
+    else if (d==="back") pinBuffer = pinBuffer.slice(0,-1);
+    else {
+      if (pinBuffer.length < 6) pinBuffer += d;
+      if (state.pin && pinBuffer.length === state.pin.length){
+        if (pinBuffer === state.pin){
+          parentUnlocked = true;
+          var cb = pinCallback; closePin();
+          toast("Welcome back, parent! 🔓");
+          if (cb) cb(); renderAll(); return;
+        } else {
+          $("pinModal").classList.remove("shake"); void $("pinModal").offsetWidth; $("pinModal").classList.add("shake");
+          pinBuffer = ""; drawDots(); toast("Wrong PIN — try again."); return;
+        }
+      }
+    }
+    drawDots();
+  });
+
+  /* ---------------- Parent form actions ---------------- */
+  function numVal(id, fallback){
+    var v = parseInt($(id).value, 10);
+    return isNaN(v) || v < 1 ? fallback : v;
+  }
+
+  $("bonusApply").addEventListener("click", function(){
+    var kid = kidById($("bonusKid").value); if (!kid){ toast("Add a kid first."); return; }
+    var amt = numVal("bonusAmt", 3);
+    var reason = $("bonusReason").value.trim() || "Bonus stars";
+    kid.stars += amt;
+    logEvent(kid, "bonus", reason, amt);
+    $("bonusReason").value = "";
+    save(); toast("⭐ +"+amt+" bonus for "+kid.name+"!"); renderAll();
+  });
+  $("penApply").addEventListener("click", function(){
+    var kid = kidById($("penKid").value); if (!kid){ toast("Add a kid first."); return; }
+    var amt = numVal("penAmt", 2);
+    var reason = $("penReason").value.trim() || "Penalty";
+    var take = Math.min(amt, kid.stars);
+    kid.stars -= take; clampStars(kid);
+    logEvent(kid, "penalty", reason, -take);
+    $("penReason").value = "";
+    save();
+    toast(take>0 ? "−"+take+" ⭐ from "+kid.name+": "+reason : kid.name+" is already at 0 ⭐ — nothing taken.");
+    renderAll();
+  });
+
+  $("bonusRuleSave").addEventListener("click", function(){
+    var name = $("bonusRuleName").value.trim(); if (!name){ toast("Give the rule a name."); return; }
+    var amt = numVal("bonusRuleAmt", 2);
+    if (editBonusRuleId){
+      state.bonusRules.forEach(function(r){ if (r.id===editBonusRuleId){ r.name=name; r.stars=amt; } });
+      toast("Bonus rule updated.");
+    } else { state.bonusRules.push({id:uid(), name:name, stars:amt}); toast("Bonus rule added."); }
+    editBonusRuleId = null; $("bonusRuleName").value=""; $("bonusRuleSave").textContent="Save bonus rule"; $("bonusRuleCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("bonusRuleCancel").addEventListener("click", function(){
+    editBonusRuleId = null; $("bonusRuleName").value=""; $("bonusRuleSave").textContent="Save bonus rule"; $("bonusRuleCancel").hidden = true;
+  });
+  $("penRuleSave").addEventListener("click", function(){
+    var name = $("penRuleName").value.trim(); if (!name){ toast("Give the rule a name."); return; }
+    var amt = numVal("penRuleAmt", 2);
+    if (editPenRuleId){
+      state.penaltyRules.forEach(function(r){ if (r.id===editPenRuleId){ r.name=name; r.stars=amt; } });
+      toast("Penalty rule updated.");
+    } else { state.penaltyRules.push({id:uid(), name:name, stars:amt}); toast("Penalty rule added."); }
+    editPenRuleId = null; $("penRuleName").value=""; $("penRuleSave").textContent="Save penalty rule"; $("penRuleCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("penRuleCancel").addEventListener("click", function(){
+    editPenRuleId = null; $("penRuleName").value=""; $("penRuleSave").textContent="Save penalty rule"; $("penRuleCancel").hidden = true;
+  });
+
+  $("kidSave").addEventListener("click", function(){
+    var name = $("kidName").value.trim(); if (!name){ toast("Give the kid a name."); return; }
+    if (editKidId){
+      var k = kidById(editKidId); if (k){ k.name=name; k.emoji=$("kidEmoji").value; k.color=$("kidColor").value; }
+      toast("Kid updated.");
+    } else {
+      var nk = {id:uid(), name:name, emoji:$("kidEmoji").value, color:$("kidColor").value, stars:0};
+      state.kids.push(nk); state.activeKidId = nk.id; toast(name+" added 🎉");
+    }
+    editKidId = null; $("kidName").value=""; $("kidSave").textContent="Add kid"; $("kidCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("kidCancel").addEventListener("click", function(){
+    editKidId = null; $("kidName").value=""; $("kidSave").textContent="Add kid"; $("kidCancel").hidden = true;
+  });
+
+  $("choreSave").addEventListener("click", function(){
+    var name = $("choreName").value.trim(); if (!name){ toast("Give the chore a name."); return; }
+    var ids = [];
+    Array.prototype.forEach.call($("choreKids").querySelectorAll("input:checked"), function(i){ ids.push(i.value); });
+    if (!ids.length){ toast("Tick at least one kid for this chore."); return; }
+    var stars = numVal("choreStars", 2), freq = $("choreFreq").value, emoji = $("choreEmoji").value;
+    if (editChoreId){
+      state.chores.forEach(function(c){ if (c.id===editChoreId){ c.name=name; c.emoji=emoji; c.stars=stars; c.freq=freq; c.kidIds=ids; } });
+      toast("Chore updated.");
+    } else {
+      state.chores.push({id:uid(), name:name, emoji:emoji, stars:stars, freq:freq, kidIds:ids});
+      toast("Chore added.");
+    }
+    editChoreId = null; $("choreName").value=""; $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("choreCancel").addEventListener("click", function(){
+    editChoreId = null; $("choreName").value=""; $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true; renderChoreKidChecks([]);
+  });
+
+  $("rewardSave").addEventListener("click", function(){
+    var name = $("rewardName").value.trim(); if (!name){ toast("Give the reward a name."); return; }
+    var cost = numVal("rewardCost", 15), emoji = $("rewardEmoji").value, pre = $("rewardPre").checked;
+    if (editRewardId){
+      state.rewards.forEach(function(r){ if (r.id===editRewardId){ r.name=name; r.emoji=emoji; r.cost=cost; r.pre=pre; } });
+      toast("Reward updated.");
+    } else {
+      state.rewards.push({id:uid(), name:name, emoji:emoji, cost:cost, pre:pre});
+      toast("Reward added.");
+    }
+    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("rewardCancel").addEventListener("click", function(){
+    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
+  });
+
+  /* PIN settings */
+  $("pinSave").addEventListener("click", function(){
+    var a = $("pinNew").value.trim(), b = $("pinConfirm").value.trim();
+    if (!/^\d{4,6}$/.test(a)){ toast("PIN must be 4–6 digits."); return; }
+    if (a !== b){ toast("The two PINs don't match."); return; }
+    state.pin = a; parentUnlocked = true;
+    $("pinNew").value=""; $("pinConfirm").value="";
+    save(); toast("PIN saved 🔒 Parent mode is protected."); renderAll();
+  });
+  $("pinRemove").addEventListener("click", function(){
+    if ($("pinRemove").getAttribute("data-armed")){
+      state.pin = ""; save(); toast("PIN removed."); renderAll();
+    } else {
+      $("pinRemove").setAttribute("data-armed","1"); $("pinRemove").textContent = "Tap again to remove PIN"; $("pinRemove").classList.add("confirming");
+      setTimeout(function(){ $("pinRemove").removeAttribute("data-armed"); $("pinRemove").textContent="Remove PIN"; $("pinRemove").classList.remove("confirming"); }, 3000);
+    }
+  });
+
+  /* Starter pack + reset */
+  $("loadDefaults").addEventListener("click", function(){
+    var d = defaultData();
+    var added = 0;
+    function mergeByName(list, defaults, mapOldToNew){
+      defaults.forEach(function(item){
+        var exists = list.some(function(x){ return x.name === item.name; });
+        if (!exists){ list.push(item); added++; }
+      });
+    }
+    // Map default kid ids onto existing kids by order so chore assignments stay valid
+    var idMap = {};
+    d.kids.forEach(function(dk, i){ if (state.kids[i]) idMap[dk.id] = state.kids[i].id; });
+    d.chores.forEach(function(c){
+      c.kidIds = c.kidIds.map(function(id){ return idMap[id] || id; }).filter(function(id){ return !!kidById(id); });
+      if (!c.kidIds.length && state.kids.length) c.kidIds = state.kids.map(function(k){ return k.id; });
+    });
+    mergeByName(state.chores, d.chores);
+    mergeByName(state.rewards, d.rewards);
+    mergeByName(state.bonusRules, d.bonusRules);
+    mergeByName(state.penaltyRules, d.penaltyRules);
+    save(); toast(added ? "Starter pack added ("+added+" new items)." : "Starter pack is already fully loaded."); renderAll();
+  });
+  $("resetAll").addEventListener("click", function(){
+    var btn = $("resetAll");
+    if (btn.getAttribute("data-armed")){
+      localStorage.removeItem(KEY);
+      state = defaultData(); save();
+      parentUnlocked = false;
+      editKidId = editChoreId = editRewardId = editBonusRuleId = editPenRuleId = null;
+      btn.removeAttribute("data-armed"); btn.textContent = "Erase everything & start over"; btn.classList.remove("confirming");
+      toast("Fresh chart loaded ⭐"); showTab("chores"); renderAll();
+    } else {
+      btn.setAttribute("data-armed","1"); btn.textContent = "Tap again — this erases all stars & history"; btn.classList.add("confirming");
+      setTimeout(function(){ btn.removeAttribute("data-armed"); btn.textContent="Erase everything & start over"; btn.classList.remove("confirming"); }, 3500);
+    }
+  });
+
+  /* Undo */
+  $("undoBtn").addEventListener("click", function(){
+    var e = state.history[0];
+    if (!e){ toast("Nothing to undo."); return; }
+    var k = kidById(e.kidId);
+    if (k && e.stars){ k.stars -= e.stars; clampStars(k); }
+    if (e.type==="chore" && e.choreId && e.freq!=="anytime"){
+      delete state.completions[e.choreId+"|"+e.kidId+"|"+e.pkey];
+    }
+    state.history.shift();
+    save(); toast("Undone: "+e.label); renderAll();
+  });
+
+  /* ---------------- Boot ---------------- */
+  function renderAll(){
+    renderKids(); renderChores(); renderRewards(); renderHistory();
+    if (currentTab==="parent") renderParent();
+    var btn = $("parentTabBtn");
+    btn.innerHTML = parentUnlocked ? "🔓 Parent" : "🔒 Parent" + (state.pending.length ? '<span class="badge">'+state.pending.length+'</span>' : "");
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
