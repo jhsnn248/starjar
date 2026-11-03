@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" href="data:," />
-<title>Mission Stars</title>
+<title>StarJar</title>
+<meta name="apple-mobile-web-app-title" content="StarJar" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
@@ -229,7 +230,7 @@
   <header class="top">
     <div class="title-row">
       <div>
-        <h1><span class="star">★</span> Mission Stars</h1>
+        <h1><span class="star">★</span> StarJar</h1>
         <p class="subtitle">Do chores, earn stars, trade them for rewards.</p>
       </div>
     </div>
@@ -317,7 +318,7 @@
 
       <div class="section">
         <h2>Kids</h2>
-        <p class="hint">Add a kid, or tap Edit to change a name, emoji, or color.</p>
+        <p class="hint">This chart starts with no profiles. Add each kid here, or tap Edit to change a name, emoji, or color.</p>
         <div class="form-grid">
           <div class="field"><label for="kidName">Name</label><input id="kidName" type="text" placeholder="Name" maxlength="24" /></div>
           <div class="field"><label for="kidEmoji">Emoji</label>
@@ -341,7 +342,7 @@
 
       <div class="section">
         <h2>Chores</h2>
-        <p class="hint">Tick every kid who can earn this chore — one kid, some kids, or everyone. Daily chores reset each morning; weekly chores reset each Monday.</p>
+        <p class="hint">Tick every kid who can earn this chore — one kid, some kids, or everyone. Starter chores start unassigned; tap Edit on one to add it to a specific profile. Daily chores reset each morning; weekly chores reset each Monday.</p>
         <div class="form-grid">
           <div class="field"><label for="choreName">Chore</label><input id="choreName" type="text" placeholder="Tidy up toys" maxlength="50" /></div>
           <div class="field"><label for="choreEmoji">Emoji</label>
@@ -364,7 +365,7 @@
 
       <div class="section">
         <h2>Rewards shop</h2>
-        <p class="hint">Pre-approved rewards (⚡) are redeemed instantly by kids. Others wait for your approval above.</p>
+        <p class="hint">Rewards stay in this shared list for every profile — add a profile and these rewards are already there for them, no need to re-add them per kid. Pre-approved rewards (⚡) are redeemed instantly by kids. Others wait for your approval above.</p>
         <div class="form-grid">
           <div class="field"><label for="rewardName">Reward</label><input id="rewardName" type="text" placeholder="Pick a movie" maxlength="50" /></div>
           <div class="field"><label for="rewardEmoji">Emoji</label>
@@ -394,7 +395,7 @@
           <button class="btn ghost small" id="lockNow" type="button">Lock Parent mode now</button>
         </div>
         <h3 class="subhead">Starter pack &amp; reset</h3>
-        <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules. Anything you already have won't be duplicated.</p>
+        <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules — it never adds kid profiles. Anything you already have won't be duplicated. Erasing starts over with no profiles and the starter lists below.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn ghost small" id="loadDefaults" type="button">Add starter pack</button>
           <button class="btn ghost small danger-zone" id="resetAll" type="button">Erase everything &amp; start over</button>
@@ -433,32 +434,34 @@
 <script>
 (function(){
   "use strict";
-  var KEY = "mission-stars-v1";
+  var KEY = "kids-reward-chart-shareable-v1";
   var uid = function(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); };
   var $ = function(id){ return document.getElementById(id); };
   var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
 
   /* ---------------- Defaults ---------------- */
+  // Starts with NO kid profiles on purpose — a parent adds each real
+  // profile themselves. The starter chores, rewards, and rules stay in
+  // the list so they're ready to use: rewards are shared by every
+  // profile, and starter chores are left unassigned until a parent
+  // edits them to pick which profile(s) they belong to.
   function defaultData(){
-    var k1 = uid(), k2 = uid();
     return {
-      kids: [
-        {id:k1, name:"Older Kid", emoji:"🦁", color:"#0e9594", stars:0},
-        {id:k2, name:"Younger Kid", emoji:"🌈", color:"#ef5d8f", stars:0}
-      ],
+      _v: 2,
+      kids: [],
       chores: [
-        {id:uid(), name:"Brush teeth — morning", emoji:"🪥", stars:1, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Brush teeth — bedtime", emoji:"🪥", stars:1, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Make the bed", emoji:"🛏️", stars:2, freq:"daily", kidIds:[k1]},
-        {id:uid(), name:"Tidy up toys", emoji:"🧸", stars:2, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Clear your plate", emoji:"🍽️", stars:1, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Clothes in the laundry basket", emoji:"👕", stars:1, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Reading or homework — 15 minutes", emoji:"📚", stars:3, freq:"daily", kidIds:[k1]},
-        {id:uid(), name:"Set the table", emoji:"🍽️", stars:2, freq:"daily", kidIds:[k1]},
-        {id:uid(), name:"Water the plants", emoji:"🪴", stars:2, freq:"daily", kidIds:[k1,k2]},
-        {id:uid(), name:"Clean your room", emoji:"🧹", stars:5, freq:"weekly", kidIds:[k1]},
-        {id:uid(), name:"Sort the laundry", emoji:"🧼", stars:3, freq:"weekly", kidIds:[k1]},
-        {id:uid(), name:"Be kind — help someone", emoji:"💛", stars:2, freq:"anytime", kidIds:[k1,k2]}
+        {id:uid(), name:"Brush teeth — morning", emoji:"🪥", stars:1, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Brush teeth — bedtime", emoji:"🪥", stars:1, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Make the bed", emoji:"🛏️", stars:2, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Tidy up toys", emoji:"🧸", stars:2, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Clear your plate", emoji:"🍽️", stars:1, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Clothes in the laundry basket", emoji:"👕", stars:1, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Reading or homework — 15 minutes", emoji:"📚", stars:3, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Set the table", emoji:"🍽️", stars:2, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Water the plants", emoji:"🪴", stars:2, freq:"daily", kidIds:[]},
+        {id:uid(), name:"Clean your room", emoji:"🧹", stars:5, freq:"weekly", kidIds:[]},
+        {id:uid(), name:"Sort the laundry", emoji:"🧼", stars:3, freq:"weekly", kidIds:[]},
+        {id:uid(), name:"Be kind — help someone", emoji:"💛", stars:2, freq:"anytime", kidIds:[]}
       ],
       rewards: [
         {id:uid(), name:"Choose a sticker", emoji:"🎁", cost:5, pre:true},
@@ -487,7 +490,7 @@
         {id:uid(), name:"Bedtime stalling after lights-out", stars:1}
       ],
       history: [], pending: [], completions: {},
-      pin: "", activeKidId: k1
+      pin: "", activeKidId: ""
     };
   }
 
@@ -501,7 +504,39 @@
       var raw = localStorage.getItem(KEY);
       if (raw) {
         var d = JSON.parse(raw);
-        if (d && Array.isArray(d.kids) && Array.isArray(d.chores)) return d;
+        if (d && Array.isArray(d.kids) && Array.isArray(d.chores)) {
+          // One-time migration (v2): charts saved by the old version were
+          // seeded with placeholder "Older Kid" / "Younger Kid" profiles.
+          // Remove only those placeholders so the chart starts empty for
+          // real profiles to be added. Real/renamed profiles, rewards,
+          // chores, rules, PIN, and history are kept. Starter chores that
+          // were only assigned to a placeholder become unassigned, ready
+          // for a parent to assign to a new profile.
+          if (!d._v || d._v < 2) {
+            var removed = {};
+            d.kids = d.kids.filter(function(k){
+              if (k.name === "Older Kid" || k.name === "Younger Kid") { removed[k.id] = true; return false; }
+              return true;
+            });
+            if (Object.keys(removed).length) {
+              if (Array.isArray(d.chores)) d.chores.forEach(function(c){
+                if (Array.isArray(c.kidIds)) c.kidIds = c.kidIds.filter(function(id){ return !removed[id]; });
+              });
+              if (Array.isArray(d.pending)) d.pending = d.pending.filter(function(p){ return !removed[p.kidId]; });
+              if (removed[d.activeKidId]) d.activeKidId = d.kids.length ? d.kids[0].id : "";
+            }
+            d._v = 2;
+            try { localStorage.setItem(KEY, JSON.stringify(d)); } catch(e) {}
+          }
+          // Defensive defaults for older / partial saves
+          if (!Array.isArray(d.rewards)) d.rewards = defaultData().rewards;
+          if (!Array.isArray(d.bonusRules)) d.bonusRules = [];
+          if (!Array.isArray(d.penaltyRules)) d.penaltyRules = [];
+          if (!Array.isArray(d.history)) d.history = [];
+          if (!Array.isArray(d.pending)) d.pending = [];
+          if (!d.completions) d.completions = {};
+          return d;
+        }
       }
     } catch(e) {}
     var fresh = defaultData();
@@ -570,7 +605,7 @@
   function renderKids(){
     var wrap = $("kidCards");
     if (!state.kids.length){
-      wrap.innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big">👋</span>No kids yet — a parent can add them in Parent controls.</div>';
+      wrap.innerHTML = '<div class="empty" style="grid-column:1/-1;"><span class="big">👋</span>No profiles yet — a parent can add the first profile in Parent controls.</div>';
       return;
     }
     var act = activeKid();
@@ -620,9 +655,9 @@
     } else banner.innerHTML = "";
 
     var groups = $("choreGroups");
-    if (!kid){ groups.innerHTML = '<div class="empty"><span class="big">⭐</span>Add a kid in Parent controls to start earning stars.</div>'; return; }
+    if (!kid){ groups.innerHTML = '<div class="empty"><span class="big">⭐</span>No profile yet — add one in Parent controls to start earning stars. Starter chores are kept in Parent controls, ready to assign to that profile.</div>'; return; }
     var mine2 = state.chores.filter(function(c){ return c.kidIds.indexOf(kid.id) > -1; });
-    if (!mine2.length){ groups.innerHTML = '<div class="empty"><span class="big">🧹</span>No chores for '+esc(kid.name)+' yet — a parent can add some in Parent controls.</div>'; return; }
+    if (!mine2.length){ groups.innerHTML = '<div class="empty"><span class="big">🧹</span>No chores for '+esc(kid.name)+' yet — a parent can add some in Parent controls, or Edit a starter chore there to assign it to '+esc(kid.name)+'.</div>'; return; }
     var sections = [
       {freq:"daily", title:"☀️ Today", note:"reset every morning"},
       {freq:"weekly", title:"🗓️ This week", note:"reset every Monday"},
@@ -659,7 +694,7 @@
     var kid = activeKid();
     var wrap = $("rewardGridWrap");
     if (!state.rewards.length){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>No rewards yet — a parent can add some in Parent controls.</div>'; return; }
-    if (!kid){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>Add a kid first, then rewards can be redeemed.</div>'; return; }
+    if (!kid){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>These rewards stay in the shop for every profile — add a profile first, then they can be redeemed.</div>'; return; }
     var waiting = {};
     state.pending.forEach(function(p){ if (p.kidId===kid.id) waiting[p.rewardId]=true; });
     wrap.innerHTML = '<div class="grid">' + state.rewards.map(function(r){
@@ -1122,18 +1157,20 @@
   $("loadDefaults").addEventListener("click", function(){
     var d = defaultData();
     var added = 0;
-    function mergeByName(list, defaults, mapOldToNew){
+    function mergeByName(list, defaults){
       defaults.forEach(function(item){
         var exists = list.some(function(x){ return x.name === item.name; });
         if (!exists){ list.push(item); added++; }
       });
     }
-    // Map default kid ids onto existing kids by order so chore assignments stay valid
-    var idMap = {};
-    d.kids.forEach(function(dk, i){ if (state.kids[i]) idMap[dk.id] = state.kids[i].id; });
+    // Starter chores have no profiles built in. If profiles already
+    // exist, assign new starter chores to all of them so they show up
+    // right away — a parent can then Edit a chore to narrow it to
+    // specific profiles. With no profiles yet, they stay unassigned.
+    // Rewards are not tied to a profile: they stay in the shared shop
+    // list, ready for any profile a parent adds.
     d.chores.forEach(function(c){
-      c.kidIds = c.kidIds.map(function(id){ return idMap[id] || id; }).filter(function(id){ return !!kidById(id); });
-      if (!c.kidIds.length && state.kids.length) c.kidIds = state.kids.map(function(k){ return k.id; });
+      c.kidIds = state.kids.length ? state.kids.map(function(k){ return k.id; }) : [];
     });
     mergeByName(state.chores, d.chores);
     mergeByName(state.rewards, d.rewards);
@@ -1149,7 +1186,7 @@
       parentUnlocked = false;
       editKidId = editChoreId = editRewardId = editBonusRuleId = editPenRuleId = null;
       btn.removeAttribute("data-armed"); btn.textContent = "Erase everything & start over"; btn.classList.remove("confirming");
-      toast("Fresh chart loaded ⭐"); showTab("chores"); renderAll();
+      toast("Fresh chart loaded — no profiles yet, add one in Parent controls ⭐"); showTab("chores"); renderAll();
     } else {
       btn.setAttribute("data-armed","1"); btn.textContent = "Tap again — this erases all stars & history"; btn.classList.add("confirming");
       setTimeout(function(){ btn.removeAttribute("data-armed"); btn.textContent="Erase everything & start over"; btn.classList.remove("confirming"); }, 3500);
