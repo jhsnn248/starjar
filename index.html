@@ -68,19 +68,43 @@
   h1 .star{color:var(--sun); text-shadow:0 2px 0 rgba(0,0,0,.08);}
   .subtitle{color:var(--ink-soft); font-weight:700; margin-top:2px; font-size:15px;}
 
-  /* ---------- Jar balance ---------- */
-  .jar-card{
+  /* ---------- Per-kid profile cards ---------- */
+  .kid-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:12px; margin:14px 0 4px;}
+  .kid-card{
+    background:var(--surface); border:3px solid var(--line); border-radius:20px;
+    padding:14px 16px; box-shadow:var(--card-shadow);
+    display:flex; gap:13px; align-items:center; text-align:left; width:100%; color:var(--ink);
+  }
+  .kid-card.active{border-color:var(--kc,var(--sun));}
+  .kid-avatar{font-size:30px; line-height:1; width:58px; height:58px; flex:0 0 58px; display:flex; align-items:center; justify-content:center; border-radius:50%;}
+  .kid-name{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:20px;}
+  .kid-balance{font-weight:900; font-size:16px;}
+  .kid-balance .n{font-size:26px; font-family:"Baloo 2",sans-serif;}
+  .kid-progress{height:8px; background:var(--surface2); border-radius:99px; overflow:hidden; margin-top:5px; border:1px solid var(--line);}
+  .kid-progress > div{height:100%; border-radius:99px; transition:width .5s ease;}
+  .kid-progress-label{font-size:12px; color:var(--ink-soft); font-weight:800; margin-top:3px; display:block;}
+  .switch-note{color:var(--ink-soft); font-weight:800; font-size:13.5px; margin:8px 2px 0;}
+  .no-kid-card{
     background:var(--surface); border:3px solid var(--sun); border-radius:20px;
     padding:16px 18px; box-shadow:var(--card-shadow); margin:14px 0 4px;
-    display:flex; gap:16px; align-items:center;
+    display:flex; gap:16px; align-items:center; flex-wrap:wrap;
   }
-  .jar-emoji{font-size:44px; line-height:1; width:64px; height:64px; flex:0 0 64px; display:flex; align-items:center; justify-content:center; background:var(--sun-soft); border-radius:16px;}
-  .jar-balance{font-weight:900; font-size:19px; color:var(--ink);}
-  .jar-balance .n{font-size:32px; font-family:"Baloo 2",sans-serif;}
-  .jar-label{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:18px; color:var(--ink-soft);}
-  .progress{height:10px; background:var(--surface2); border-radius:99px; overflow:hidden; margin-top:6px; border:1px solid var(--line);}
-  .progress > div{height:100%; background:var(--sun); border-radius:99px; transition:width .5s ease;}
-  .progress-label{font-size:12.5px; color:var(--ink-soft); font-weight:800; margin-top:3px;}
+  .no-kid-card .grow{flex:1 1 220px;}
+  .no-kid-card .big{font-family:"Baloo 2",sans-serif; font-weight:800; font-size:20px;}
+  .no-kid-card p{margin:2px 0 0; color:var(--ink-soft); font-weight:700; font-size:14.5px;}
+  .kid-tag{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:900; border-radius:99px; padding:2px 9px; background:var(--surface2); border:1.5px solid var(--line); white-space:nowrap;}
+  .kid-dot{width:9px; height:9px; border-radius:50%; display:inline-block; flex:0 0 9px;}
+
+  .color-row{display:flex; gap:9px; flex-wrap:wrap; margin:2px 0 4px;}
+  .color-swatch{position:relative; display:inline-block; cursor:pointer;}
+  .color-swatch input{position:absolute; opacity:0; width:100%; height:100%; margin:0; cursor:pointer;}
+  .color-swatch span{display:block; width:36px; height:36px; border-radius:50%; border:3px solid transparent;}
+  .color-swatch input:checked + span{border-color:var(--surface); box-shadow:0 0 0 3px var(--ink);}
+  .color-swatch input:focus-visible + span{outline:3px solid var(--sky); outline-offset:2px;}
+
+  .assign-box{display:flex; flex-wrap:wrap; gap:8px; margin:4px 0 6px;}
+  .assign-chip{display:inline-flex; align-items:center; gap:7px; border:2px solid var(--line); border-radius:99px; padding:7px 13px; font-weight:800; background:var(--surface2); cursor:pointer;}
+  .assign-chip input{width:20px; height:20px; accent-color:var(--teal); margin:0;}
 
   .tabs{display:flex; gap:8px; margin:16px 0 14px; flex-wrap:wrap; position:sticky; top:0; background:var(--bg); padding:10px 0 8px; z-index:20;}
   .tab{
@@ -212,7 +236,7 @@
   @keyframes burst{0%{opacity:1; transform:translate(0,0) scale(.6) rotate(0deg);}100%{opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.25) rotate(140deg);}}
   @media (prefers-reduced-motion: reduce){
     .burst-star{display:none;} .shake{animation:none;} html{scroll-behavior:auto;}
-    .progress > div{transition:none;}
+    .kid-progress > div{transition:none;}
   }
   footer{margin-top:26px; color:var(--ink-soft); font-weight:700; font-size:14px; text-align:center;}
   footer p{margin:5px 0;}
@@ -264,18 +288,48 @@
 
     <div id="parentBody" hidden>
 
+      <div class="section" id="profilesSection">
+        <h2>👧🧒 Kids' profiles — Add a Child</h2>
+        <p class="hint">Add a profile for each child. Every child gets their own name, emoji, colour, and their own star balance. Chores and rewards can be set for one child, some children, or everyone.</p>
+        <div class="form-grid">
+          <div class="field"><label for="profileName">Child's name</label><input id="profileName" type="text" placeholder="e.g. Aarav" maxlength="30" /></div>
+          <div class="field"><label for="profileEmoji">Emoji</label>
+            <select id="profileEmoji">
+              <option>🦊</option><option>🦁</option><option>🐰</option><option>🐼</option><option>🦄</option>
+              <option>🐶</option><option>🐱</option><option>🐯</option><option>🐸</option><option>🦖</option>
+              <option>🐙</option><option>🐳</option><option>🌟</option><option>🚀</option><option>⚽</option><option>🎨</option>
+            </select></div>
+        </div>
+        <div class="field"><label>Colour</label>
+          <div class="color-row" id="profileColors">
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#f2603c" checked /><span style="background:#f2603c"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#0e9594" /><span style="background:#0e9594"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#3a86ff" /><span style="background:#3a86ff"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#ef5d8f" /><span style="background:#ef5d8f"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#ffb703" /><span style="background:#ffb703"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#1e9e6a" /><span style="background:#1e9e6a"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#7c5cbf" /><span style="background:#7c5cbf"></span></label>
+            <label class="color-swatch"><input type="radio" name="pcolor" value="#5a6b8c" /><span style="background:#5a6b8c"></span></label>
+          </div>
+        </div>
+        <button class="btn coral" id="profileSave" type="button">➕ Add Child</button>
+        <button class="btn ghost small" id="profileCancel" type="button" hidden>Cancel edit</button>
+        <div class="manage-list" id="profileList"></div>
+      </div>
+
       <div class="section" id="approvalsSection">
         <h2>Reward approvals</h2>
-        <p class="hint">Rewards that aren't pre-approved wait here. Approving spends the stars; declining keeps them.</p>
+        <p class="hint">Rewards that aren't pre-approved wait here. Approving spends the stars from that child's balance; declining keeps them.</p>
         <div id="approvalsList"></div>
       </div>
 
       <div class="section">
         <h2>Bonus &amp; penalty stars</h2>
-        <p class="hint">Apply one on the spot, or tap a saved rule. Penalties never take the jar below zero.</p>
+        <p class="hint">Pick which child, then apply one on the spot or tap a saved rule. Penalties never take a balance below zero.</p>
 
         <h3 class="subhead">⭐ Give a bonus</h3>
         <div class="form-grid">
+          <div class="field"><label for="bonusKid">Which child</label><select id="bonusKid"></select></div>
           <div class="field"><label for="bonusAmt">Stars</label><input id="bonusAmt" type="number" min="1" max="99" value="3" inputmode="numeric" /></div>
           <div class="field"><label for="bonusReason">Reason</label><input id="bonusReason" type="text" placeholder="Helped without being asked" maxlength="60" /></div>
         </div>
@@ -291,6 +345,7 @@
 
         <h3 class="subhead" style="margin-top:26px;">➖ Apply a penalty</h3>
         <div class="form-grid">
+          <div class="field"><label for="penKid">Which child</label><select id="penKid"></select></div>
           <div class="field"><label for="penAmt">Stars to take</label><input id="penAmt" type="number" min="1" max="99" value="2" inputmode="numeric" /></div>
           <div class="field"><label for="penReason">Reason</label><input id="penReason" type="text" placeholder="Not listening after warnings" maxlength="60" /></div>
         </div>
@@ -307,7 +362,7 @@
 
       <div class="section">
         <h2>Chores</h2>
-        <p class="hint">All chores show on the Chores tab right away. Daily chores reset each morning; weekly chores reset each Monday.</p>
+        <p class="hint">Chores show on the Chores tab for the children they're assigned to. Daily chores reset each morning; weekly chores reset each Monday.</p>
         <div class="form-grid">
           <div class="field"><label for="choreName">Chore</label><input id="choreName" type="text" placeholder="Tidy up toys" maxlength="50" /></div>
           <div class="field"><label for="choreEmoji">Emoji</label>
@@ -322,14 +377,18 @@
               <option value="daily">Daily</option><option value="weekly">Weekly</option><option value="anytime">Anytime</option>
             </select></div>
         </div>
-        <button class="btn primary small" id="choreSave" type="button">Add chore</button>
-        <button class="btn ghost small" id="choreCancel" type="button" hidden>Cancel edit</button>
+        <div class="field"><label>Who is this chore for?</label><div class="assign-box" id="choreAssign"></div>
+          <p class="hint" style="margin:0;">Tick one child, some children — or leave all unticked for <strong>Everyone</strong>.</p></div>
+        <div style="margin-top:10px;">
+          <button class="btn primary small" id="choreSave" type="button">Add chore</button>
+          <button class="btn ghost small" id="choreCancel" type="button" hidden>Cancel edit</button>
+        </div>
         <div class="manage-list" id="choreManageList"></div>
       </div>
 
       <div class="section">
         <h2>Rewards shop</h2>
-        <p class="hint">Rewards are bought with stars from the one shared jar. Pre-approved rewards (⚡) are redeemed instantly. Others wait for your approval above.</p>
+        <p class="hint">Rewards are bought with stars from a child's own balance. Pre-approved rewards (⚡) are redeemed instantly. Others wait for your approval above.</p>
         <div class="form-grid">
           <div class="field"><label for="rewardName">Reward</label><input id="rewardName" type="text" placeholder="Pick a movie" maxlength="50" /></div>
           <div class="field"><label for="rewardEmoji">Emoji</label>
@@ -340,6 +399,8 @@
             </select></div>
           <div class="field"><label for="rewardCost">Star cost</label><input id="rewardCost" type="number" min="1" max="999" value="15" inputmode="numeric" /></div>
         </div>
+        <div class="field"><label>Who can get this reward?</label><div class="assign-box" id="rewardAssign"></div>
+          <p class="hint" style="margin:0;">Tick specific children — or leave all unticked for <strong>Everyone</strong>.</p></div>
         <label class="toggle-row"><input type="checkbox" id="rewardPre" /> ⚡ Pre-approved — get it instantly</label>
         <button class="btn primary small" id="rewardSave" type="button">Add reward</button>
         <button class="btn ghost small" id="rewardCancel" type="button" hidden>Cancel edit</button>
@@ -359,7 +420,7 @@
           <button class="btn ghost small" id="lockNow" type="button">Lock Parent mode now</button>
         </div>
         <h3 class="subhead">Starter pack &amp; reset</h3>
-        <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules. Anything you already have won't be duplicated. Erasing starts over with the starter lists and an empty jar.</p>
+        <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules. Anything you already have won't be duplicated. Erasing starts over with the starter lists, no profiles, and empty balances.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn ghost small" id="loadDefaults" type="button">Add starter pack</button>
           <button class="btn ghost small danger-zone" id="resetAll" type="button">Erase everything &amp; start over</button>
@@ -402,58 +463,73 @@
   var $ = function(id){ return document.getElementById(id); };
   var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
 
+  function starterChores(){
+    return [
+      {id:uid(), name:"Brush teeth — morning", emoji:"🪥", stars:1, freq:"daily", kidIds:null},
+      {id:uid(), name:"Brush teeth — bedtime", emoji:"🪥", stars:1, freq:"daily", kidIds:null},
+      {id:uid(), name:"Make the bed", emoji:"🛏️", stars:2, freq:"daily", kidIds:null},
+      {id:uid(), name:"Tidy up toys", emoji:"🧸", stars:2, freq:"daily", kidIds:null},
+      {id:uid(), name:"Clear your plate", emoji:"🍽️", stars:1, freq:"daily", kidIds:null},
+      {id:uid(), name:"Clothes in the laundry basket", emoji:"👕", stars:1, freq:"daily", kidIds:null},
+      {id:uid(), name:"Reading or homework — 15 minutes", emoji:"📚", stars:3, freq:"daily", kidIds:null},
+      {id:uid(), name:"Set the table", emoji:"🍽️", stars:2, freq:"daily", kidIds:null},
+      {id:uid(), name:"Water the plants", emoji:"🪴", stars:2, freq:"daily", kidIds:null},
+      {id:uid(), name:"Clean your room", emoji:"🧹", stars:5, freq:"weekly", kidIds:null},
+      {id:uid(), name:"Sort the laundry", emoji:"🧼", stars:3, freq:"weekly", kidIds:null},
+      {id:uid(), name:"Be kind — help someone", emoji:"💛", stars:2, freq:"anytime", kidIds:null}
+    ];
+  }
+  function starterRewards(){
+    return [
+      {id:uid(), name:"Choose a sticker", emoji:"🎁", cost:5, pre:true, kidIds:null},
+      {id:uid(), name:"Pick tonight's dessert", emoji:"🍰", cost:10, pre:true, kidIds:null},
+      {id:uid(), name:"15 extra minutes of screen time", emoji:"📱", cost:15, pre:true, kidIds:null},
+      {id:uid(), name:"Trip to the park", emoji:"🌳", cost:15, pre:true, kidIds:null},
+      {id:uid(), name:"Pick a movie for family night", emoji:"🎬", cost:20, pre:false, kidIds:null},
+      {id:uid(), name:"Ice cream outing", emoji:"🍦", cost:30, pre:false, kidIds:null},
+      {id:uid(), name:"Stay up 30 minutes late", emoji:"🌙", cost:35, pre:false, kidIds:null},
+      {id:uid(), name:"A new book", emoji:"📖", cost:40, pre:false, kidIds:null},
+      {id:uid(), name:"Pick a fun weekend outing", emoji:"🎨", cost:60, pre:false, kidIds:null}
+    ];
+  }
+  function starterBonus(){
+    return [
+      {id:uid(), name:"Helped without being asked", stars:3},
+      {id:uid(), name:"Listened the first time", stars:2},
+      {id:uid(), name:"Kind to a sibling", stars:2},
+      {id:uid(), name:"Finished homework early", stars:3},
+      {id:uid(), name:"Cleaned up an extra mess", stars:3},
+      {id:uid(), name:"Brave at the doctor or dentist", stars:5}
+    ];
+  }
+  function starterPenalty(){
+    return [
+      {id:uid(), name:"Not listening after two warnings", stars:2},
+      {id:uid(), name:"Unkind hands (hitting or pushing)", stars:3},
+      {id:uid(), name:"Left a mess after a reminder", stars:1},
+      {id:uid(), name:"Broke a screen-time rule", stars:2},
+      {id:uid(), name:"Bedtime stalling after lights-out", stars:1}
+    ];
+  }
   function defaultData(){
     return {
-      _v: 3,
-      stars: 0,
-      chores: [
-        {id:uid(), name:"Brush teeth — morning", emoji:"🪥", stars:1, freq:"daily"},
-        {id:uid(), name:"Brush teeth — bedtime", emoji:"🪥", stars:1, freq:"daily"},
-        {id:uid(), name:"Make the bed", emoji:"🛏️", stars:2, freq:"daily"},
-        {id:uid(), name:"Tidy up toys", emoji:"🧸", stars:2, freq:"daily"},
-        {id:uid(), name:"Clear your plate", emoji:"🍽️", stars:1, freq:"daily"},
-        {id:uid(), name:"Clothes in the laundry basket", emoji:"👕", stars:1, freq:"daily"},
-        {id:uid(), name:"Reading or homework — 15 minutes", emoji:"📚", stars:3, freq:"daily"},
-        {id:uid(), name:"Set the table", emoji:"🍽️", stars:2, freq:"daily"},
-        {id:uid(), name:"Water the plants", emoji:"🪴", stars:2, freq:"daily"},
-        {id:uid(), name:"Clean your room", emoji:"🧹", stars:5, freq:"weekly"},
-        {id:uid(), name:"Sort the laundry", emoji:"🧼", stars:3, freq:"weekly"},
-        {id:uid(), name:"Be kind — help someone", emoji:"💛", stars:2, freq:"anytime"}
-      ],
-      rewards: [
-        {id:uid(), name:"Choose a sticker", emoji:"🎁", cost:5, pre:true},
-        {id:uid(), name:"Pick tonight's dessert", emoji:"🍰", cost:10, pre:true},
-        {id:uid(), name:"15 extra minutes of screen time", emoji:"📱", cost:15, pre:true},
-        {id:uid(), name:"Trip to the park", emoji:"🌳", cost:15, pre:true},
-        {id:uid(), name:"Pick a movie for family night", emoji:"🎬", cost:20, pre:false},
-        {id:uid(), name:"Ice cream outing", emoji:"🍦", cost:30, pre:false},
-        {id:uid(), name:"Stay up 30 minutes late", emoji:"🌙", cost:35, pre:false},
-        {id:uid(), name:"A new book", emoji:"📖", cost:40, pre:false},
-        {id:uid(), name:"Pick a fun weekend outing", emoji:"🎨", cost:60, pre:false}
-      ],
-      bonusRules: [
-        {id:uid(), name:"Helped without being asked", stars:3},
-        {id:uid(), name:"Listened the first time", stars:2},
-        {id:uid(), name:"Kind to a sibling", stars:2},
-        {id:uid(), name:"Finished homework early", stars:3},
-        {id:uid(), name:"Cleaned up an extra mess", stars:3},
-        {id:uid(), name:"Brave at the doctor or dentist", stars:5}
-      ],
-      penaltyRules: [
-        {id:uid(), name:"Not listening after two warnings", stars:2},
-        {id:uid(), name:"Unkind hands (hitting or pushing)", stars:3},
-        {id:uid(), name:"Left a mess after a reminder", stars:1},
-        {id:uid(), name:"Broke a screen-time rule", stars:2},
-        {id:uid(), name:"Bedtime stalling after lights-out", stars:1}
-      ],
+      _v: 4,
+      kids: [],
+      activeKidId: null,
+      legacyStars: 0,
+      chores: starterChores(),
+      rewards: starterRewards(),
+      bonusRules: starterBonus(),
+      penaltyRules: starterPenalty(),
       history: [], pending: [], completions: {},
       pin: ""
     };
   }
 
-  var state = load();
-  var parentUnlocked = false;
-  var editChoreId = null, editRewardId = null, editBonusRuleId = null, editPenRuleId = null;
+  function cleanItem(c, isReward){
+    if (isReward) return {id:c.id||uid(), name:c.name, emoji:c.emoji, cost:c.cost, pre:!!c.pre, kidIds:(Array.isArray(c.kidIds)&&c.kidIds.length)?c.kidIds:null};
+    return {id:c.id||uid(), name:c.name, emoji:c.emoji, stars:c.stars, freq:c.freq, kidIds:(Array.isArray(c.kidIds)&&c.kidIds.length)?c.kidIds:null};
+  }
 
   function load(){
     try {
@@ -461,64 +537,88 @@
       if (raw) {
         var d = JSON.parse(raw);
         if (d && Array.isArray(d.chores)) {
-          if (!d._v || d._v < 3) {
-            // Migrate from profile version: collapse all kid balances
-            // into one shared jar, drop profile assignment from chores,
-            // and remap completions from chore|kid|period to chore|period.
-            var total = 0;
-            if (typeof d.stars === "number") total = d.stars;
-            if (Array.isArray(d.kids)) d.kids.forEach(function(k){ if (typeof k.stars === "number") total += k.stars; });
-            var fresh = defaultData();
-            var migrated = {
-              _v: 3,
-              stars: total,
-              chores: (d.chores && d.chores.length ? d.chores : fresh.chores).map(function(c){
-                return {id:c.id||uid(), name:c.name, emoji:c.emoji, stars:c.stars, freq:c.freq};
-              }),
-              rewards: Array.isArray(d.rewards) && d.rewards.length ? d.rewards : fresh.rewards,
-              bonusRules: Array.isArray(d.bonusRules) ? d.bonusRules : fresh.bonusRules,
-              penaltyRules: Array.isArray(d.penaltyRules) ? d.penaltyRules : fresh.penaltyRules,
-              history: Array.isArray(d.history) ? d.history.map(function(e){
-                return {id:e.id||uid(), type:e.type, label:e.label, stars:e.stars, ts:e.ts, choreId:e.choreId, pkey:e.pkey, freq:e.freq};
-              }) : [],
-              pending: Array.isArray(d.pending) ? d.pending.map(function(p){
-                return {id:p.id||uid(), rewardId:p.rewardId, cost:p.cost, ts:p.ts};
-              }) : [],
-              completions: {},
-              pin: d.pin || ""
-            };
-            if (d.completions) {
-              Object.keys(d.completions).forEach(function(key){
-                var parts = key.split("|");
-                if (parts.length === 3) migrated.completions[parts[0]+"|"+parts[2]] = true;
-                else migrated.completions[key] = d.completions[key];
-              });
-            }
-            // If the old chart had no chores at all, load the defaults.
-            if (!migrated.chores.length) migrated.chores = fresh.chores;
-            try { localStorage.setItem(KEY, JSON.stringify(migrated)); } catch(e) {}
-            return migrated;
+          if (d._v && d._v >= 4) {
+            if (!Array.isArray(d.kids)) d.kids = [];
+            d.kids = d.kids.filter(function(k){ return k && k.name; }).map(function(k){
+              return {id:k.id||uid(), name:k.name, emoji:k.emoji||"🦊", color:k.color||"#f2603c", stars:(typeof k.stars==="number"&&k.stars>0)?Math.floor(k.stars):0};
+            });
+            d.chores = d.chores.map(function(c){ return cleanItem(c,false); });
+            if (!d.chores.length) d.chores = starterChores();
+            d.rewards = (Array.isArray(d.rewards)&&d.rewards.length?d.rewards:starterRewards()).map(function(r){ return cleanItem(r,true); });
+            if (!Array.isArray(d.bonusRules)) d.bonusRules = [];
+            if (!Array.isArray(d.penaltyRules)) d.penaltyRules = [];
+            if (!Array.isArray(d.history)) d.history = [];
+            if (!Array.isArray(d.pending)) d.pending = [];
+            if (!d.completions) d.completions = {};
+            if (typeof d.legacyStars !== "number") d.legacyStars = 0;
+            if (!d.activeKidId || !d.kids.some(function(k){ return k.id===d.activeKidId; })) d.activeKidId = d.kids.length ? d.kids[0].id : null;
+            if (typeof d.pin !== "string") d.pin = "";
+            delete d.stars;
+            return d;
           }
-          if (!Array.isArray(d.rewards)) d.rewards = defaultData().rewards;
-          if (!Array.isArray(d.bonusRules)) d.bonusRules = [];
-          if (!Array.isArray(d.penaltyRules)) d.penaltyRules = [];
-          if (!Array.isArray(d.history)) d.history = [];
-          if (!Array.isArray(d.pending)) d.pending = [];
-          if (!d.completions) d.completions = {};
-          if (typeof d.stars !== "number") d.stars = 0;
-          // Clean any leftover profile fields
-          d.chores = d.chores.map(function(c){ return {id:c.id, name:c.name, emoji:c.emoji, stars:c.stars, freq:c.freq}; });
-          delete d.kids; delete d.activeKidId;
-          return d;
+          // Migrate from the single shared jar (v3 and older):
+          // profiles start empty, as requested. The jar's stars are kept
+          // as legacyStars and move to the first profile added; history
+          // is carried over unchanged (entries keep no kid).
+          var total = 0;
+          if (typeof d.stars === "number") total += d.stars;
+          if (Array.isArray(d.kids)) d.kids.forEach(function(k){ if (typeof k.stars === "number") total += k.stars; });
+          if (typeof d.legacyStars === "number") total += d.legacyStars;
+          var migrated = {
+            _v: 4,
+            kids: [],
+            activeKidId: null,
+            legacyStars: Math.max(0, Math.floor(total)),
+            chores: (d.chores && d.chores.length ? d.chores : starterChores()).map(function(c){ return cleanItem(c,false); }),
+            rewards: (Array.isArray(d.rewards) && d.rewards.length ? d.rewards : starterRewards()).map(function(r){ return cleanItem(r,true); }),
+            bonusRules: Array.isArray(d.bonusRules) ? d.bonusRules : starterBonus(),
+            penaltyRules: Array.isArray(d.penaltyRules) ? d.penaltyRules : starterPenalty(),
+            history: Array.isArray(d.history) ? d.history.map(function(e){
+              return {id:e.id||uid(), type:e.type, label:e.label, stars:e.stars, ts:e.ts, kidId:e.kidId||null, kidName:e.kidName||null, choreId:e.choreId, pkey:e.pkey, freq:e.freq};
+            }) : [],
+            pending: Array.isArray(d.pending) ? d.pending.map(function(p){
+              return {id:p.id||uid(), rewardId:p.rewardId, cost:p.cost, ts:p.ts, kidId:p.kidId||null, kidName:p.kidName||null};
+            }) : [],
+            completions: {},
+            pin: d.pin || ""
+          };
+          try { localStorage.setItem(KEY, JSON.stringify(migrated)); } catch(e) {}
+          return migrated;
         }
       }
     } catch(e) {}
-    var fresh2 = defaultData();
-    try { localStorage.setItem(KEY, JSON.stringify(fresh2)); } catch(e) {}
-    return fresh2;
+    var fresh = defaultData();
+    try { localStorage.setItem(KEY, JSON.stringify(fresh)); } catch(e) {}
+    return fresh;
   }
+
+  var state = load();
+  var parentUnlocked = false;
+  var editKidId = null, editChoreId = null, editRewardId = null, editBonusRuleId = null, editPenRuleId = null;
+
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e) {} }
-  function clampStars(){ if (state.stars < 0) state.stars = 0; }
+
+  function getKid(id){
+    var found = null;
+    state.kids.forEach(function(k){ if (k.id===id) found = k; });
+    return found;
+  }
+  function activeKid(){ return state.activeKidId ? getKid(state.activeKidId) : (state.kids[0] || null); }
+  function forKid(item, kidId){ return !item.kidIds || !item.kidIds.length || item.kidIds.indexOf(kidId) !== -1; }
+  function assignLabel(item){
+    if (!item.kidIds || !item.kidIds.length) return "Everyone";
+    var names = [];
+    item.kidIds.forEach(function(id){ var k = getKid(id); if (k) names.push(k.name); });
+    return names.length ? names.join(", ") : "Everyone";
+  }
+  function kidTag(kidId, kidName){
+    var k = kidId ? getKid(kidId) : null;
+    var name = k ? k.name : kidName;
+    if (!name) return "";
+    var color = k ? k.color : "#5a6b8c";
+    var emoji = k ? k.emoji + " " : "";
+    return ' <span class="kid-tag"><span class="kid-dot" style="background:'+esc(color)+'"></span>'+emoji+esc(name)+'</span>';
+  }
 
   function pad2(n){ return (n<10?"0":"")+n; }
   function todayKey(d){ d = d||new Date(); return d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate()); }
@@ -533,9 +633,9 @@
     if (freq==="weekly") return weekKey();
     return "any";
   }
-  function isDone(chore){
+  function isDone(chore, kidId){
     if (chore.freq==="anytime") return false;
-    return !!state.completions[chore.id+"|"+periodKey(chore.freq)];
+    return !!state.completions[chore.id+"|"+kidId+"|"+periodKey(chore.freq)];
   }
 
   var toastTimer = null;
@@ -557,36 +657,72 @@
     }
   }
 
-  function logEvent(type, label, stars, extra){
-    var e = {id:uid(), type:type, label:label, stars:stars, ts:Date.now()};
+  function logEvent(type, label, stars, kid, extra){
+    var e = {id:uid(), type:type, label:label, stars:stars, ts:Date.now(), kidId: kid ? kid.id : null, kidName: kid ? kid.name : null};
     if (extra) for (var k in extra) e[k]=extra[k];
     state.history.unshift(e);
     if (state.history.length > 200) state.history.length = 200;
     return e;
   }
 
-  function renderJar(){
-    var wrap = $("jarCard");
+  function nextRewardFor(kid){
     var next = null;
-    state.rewards.forEach(function(r){ if (r.cost > state.stars && (next===null || r.cost < next.cost)) next = r; });
-    var pct, label;
-    if (!state.rewards.length){ pct = 0; label = "Add rewards in Parent controls"; }
-    else if (!next){ pct = 100; label = "Can afford every reward! 🎉"; }
-    else { pct = Math.min(100, Math.round(state.stars/next.cost*100)); label = (next.cost-state.stars)+" more ★ for "+esc(next.name); }
-    wrap.innerHTML = '<div class="jar-card"><span class="jar-emoji">🫙</span><span style="flex:1; min-width:0;"><span class="jar-label">Our StarJar</span><br />'
-      + '<span class="jar-balance"><span class="n">'+state.stars+'</span> ⭐ stars</span>'
-      + '<span class="progress"><div style="width:'+pct+'%"></div></span>'
-      + '<span class="progress-label">'+label+'</span></span></div>';
+    state.rewards.forEach(function(r){
+      if (!forKid(r, kid.id)) return;
+      if (r.cost > kid.stars && (next===null || r.cost < next.cost)) next = r;
+    });
+    return next;
   }
 
-  function choreCard(chore){
-    var done = isDone(chore);
+  function renderProfilesHeader(){
+    var wrap = $("jarCard");
+    if (!state.kids.length){
+      var legacy = state.legacyStars > 0
+        ? '<p>⭐ You have <strong>'+state.legacyStars+' stars</strong> saved from the old shared jar — they will move to the first profile you add.</p>' : "";
+      wrap.innerHTML = '<div class="no-kid-card"><span style="font-size:44px;">🫙</span><span class="grow">'
+        + '<span class="big">No kids added yet</span>'
+        + '<p>StarJar starts empty — a parent adds a profile for each child, and each child gets their own star balance. The chores below are already loaded and ready.</p>'
+        + legacy + '</span>'
+        + '<button type="button" class="btn coral" id="addKidCta">➕ Add a Child</button></div>';
+      $("addKidCta").addEventListener("click", goParent);
+      return;
+    }
+    var active = activeKid();
+    wrap.innerHTML = '<div class="kid-grid">' + state.kids.map(function(k){
+      var next = nextRewardFor(k);
+      var pct, label;
+      if (!state.rewards.length){ pct = 0; label = "Add rewards in Parent controls"; }
+      else if (!next){ pct = 100; label = "Can afford every reward! 🎉"; }
+      else { pct = Math.min(100, Math.round(k.stars/next.cost*100)); label = (next.cost-k.stars)+" more ★ for "+esc(next.name); }
+      var isActive = active && k.id===active.id;
+      return '<button type="button" class="kid-card'+(isActive?' active':'')+'" style="--kc:'+esc(k.color)+'" data-kid-pick="'+k.id+'" aria-pressed="'+(isActive?'true':'false')+'">'
+        + '<span class="kid-avatar" style="background:'+esc(k.color)+'33">'+esc(k.emoji)+'</span>'
+        + '<span style="flex:1; min-width:0;"><span class="kid-name">'+esc(k.name)+'</span><br />'
+        + '<span class="kid-balance"><span class="n">'+k.stars+'</span> ⭐ stars</span>'
+        + '<span class="kid-progress"><div style="width:'+pct+'%; background:'+esc(k.color)+'"></div></span>'
+        + '<span class="kid-progress-label">'+label+'</span></span></button>';
+    }).join("") + '</div>'
+      + (state.kids.length > 1 ? '<p class="switch-note">Tap a profile to switch who is earning stars.</p>' : "")
+      + (state.legacyStars > 0 ? '<p class="switch-note">⭐ '+state.legacyStars+' stars from the old shared jar are still unclaimed — they move to the next profile a parent adds.</p>' : "");
+    Array.prototype.forEach.call(wrap.querySelectorAll("[data-kid-pick]"), function(btn){
+      btn.addEventListener("click", function(){
+        state.activeKidId = btn.getAttribute("data-kid-pick");
+        save(); renderAll();
+        var k = getKid(state.activeKidId);
+        if (k) toast(k.emoji+" "+k.name+"'s turn — earning into their jar!");
+      });
+    });
+  }
+
+  function choreCard(chore, kid){
+    var done = kid ? isDone(chore, kid.id) : false;
     var html = '<div class="card'+(done?' done':'')+'"><div class="card-top">'
       + '<span class="card-emoji">'+esc(chore.emoji)+'</span>'
       + '<span style="flex:1; min-width:0;"><span class="card-name">'+esc(chore.name)+'</span><br />'
       + '<span class="card-meta">'+(chore.freq==="daily"?"Every day":chore.freq==="weekly"?"Once a week":"Any time")+'</span></span>'
       + '<span class="stars-chip">+'+chore.stars+' ⭐</span></div>';
-    if (done) html += '<div class="done-banner">✅ Done — great job!</div>';
+    if (!kid) html += '<button type="button" class="btn" disabled>Add a child to start ⭐</button>';
+    else if (done) html += '<div class="done-banner">✅ Done — great job, '+esc(kid.name)+'!</div>';
     else html += '<button type="button" class="btn primary" data-do-chore="'+chore.id+'">I did it! ⭐</button>';
     return html + '</div>';
   }
@@ -595,51 +731,65 @@
     if (state.pending.length){
       banner.innerHTML = '<div class="pending-banner">⏳ Waiting for a parent: ' + state.pending.map(function(p){
         var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
-        return esc(r?r.name:"a reward")+" ("+p.cost+" ⭐)";
+        var who = p.kidName ? esc(p.kidName)+" · " : "";
+        return who+esc(r?r.name:"a reward")+" ("+p.cost+" ⭐)";
       }).join(", ") + '</div>';
     } else banner.innerHTML = "";
 
     var groups = $("choreGroups");
+    var kid = activeKid();
     if (!state.chores.length){ groups.innerHTML = '<div class="empty"><span class="big">🧹</span>No chores yet — a parent can add some in Parent controls, or load the starter pack there.</div>'; return; }
+    var visible = kid ? state.chores.filter(function(c){ return forKid(c, kid.id); }) : state.chores;
+    if (!visible.length){
+      groups.innerHTML = '<div class="empty"><span class="big">🧹</span>No chores are assigned to '+esc(kid.name)+' yet — a parent can assign some in Parent controls.</div>';
+      return;
+    }
     var sections = [
       {freq:"daily", title:"☀️ Today", note:"reset every morning"},
       {freq:"weekly", title:"🗓️ This week", note:"reset every Monday"},
       {freq:"anytime", title:"✨ Any time", note:"earn as often as you like"}
     ];
     groups.innerHTML = sections.map(function(s){
-      var list = state.chores.filter(function(c){ return c.freq===s.freq; });
+      var list = visible.filter(function(c){ return c.freq===s.freq; });
       if (!list.length) return "";
       return '<h2 class="group-title">'+s.title+' <span class="reset-note">· '+s.note+'</span></h2><div class="grid">'
-        + list.map(function(c){ return choreCard(c); }).join("") + '</div>';
+        + list.map(function(c){ return choreCard(c, kid); }).join("") + '</div>';
     }).join("");
     Array.prototype.forEach.call(groups.querySelectorAll("[data-do-chore]"), function(btn){
       btn.addEventListener("click", function(ev){ doChore(btn.getAttribute("data-do-chore"), ev); });
     });
   }
   function doChore(choreId, ev){
+    var kid = activeKid();
+    if (!kid){ toast("Add a child in Parent controls first."); return; }
     var chore = null; state.chores.forEach(function(c){ if (c.id===choreId) chore=c; });
-    if (!chore || isDone(chore)) return;
-    state.stars += chore.stars;
+    if (!chore || isDone(chore, kid.id)) return;
+    kid.stars += chore.stars;
     var pk = periodKey(chore.freq);
-    if (chore.freq !== "anytime") state.completions[chore.id+"|"+pk] = true;
-    logEvent("chore", chore.name, chore.stars, {choreId:chore.id, pkey:pk, freq:chore.freq});
+    if (chore.freq !== "anytime") state.completions[chore.id+"|"+kid.id+"|"+pk] = true;
+    logEvent("chore", chore.name, chore.stars, kid, {choreId:chore.id, pkey:pk, freq:chore.freq});
     save();
     if (ev && ev.clientX) burst(ev.clientX, ev.clientY);
-    toast("⭐ +"+chore.stars+" stars in the jar!");
+    toast("⭐ +"+chore.stars+" stars for "+kid.name+"!");
     renderAll();
   }
 
   function renderRewards(){
     var wrap = $("rewardGridWrap");
+    var kid = activeKid();
     if (!state.rewards.length){ wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>No rewards yet — a parent can add some in Parent controls.</div>'; return; }
+    var visible = kid ? state.rewards.filter(function(r){ return forKid(r, kid.id); }) : state.rewards;
+    if (!visible.length){
+      wrap.innerHTML = '<div class="empty"><span class="big">🎁</span>No rewards are set for '+esc(kid.name)+' yet — a parent can assign some in Parent controls.</div>';
+      return;
+    }
     var waiting = {};
-    state.pending.forEach(function(p){ waiting[p.rewardId]=true; });
-    wrap.innerHTML = '<div class="grid">' + state.rewards.map(function(r){
-      var afford = state.stars >= r.cost;
-      var isWaiting = !!waiting[r.id];
+    state.pending.forEach(function(p){ if (kid && p.kidId===kid.id) waiting[p.rewardId]=true; });
+    wrap.innerHTML = '<div class="grid">' + visible.map(function(r){
       var btn;
-      if (isWaiting) btn = '<button type="button" class="btn" disabled>⏳ Waiting for a parent…</button>';
-      else if (!afford) btn = '<button type="button" class="btn" disabled>Need '+(r.cost-state.stars)+' more ⭐</button>';
+      if (!kid) btn = '<button type="button" class="btn" disabled>Add a child to start ⭐</button>';
+      else if (waiting[r.id]) btn = '<button type="button" class="btn" disabled>⏳ Waiting for a parent…</button>';
+      else if (kid.stars < r.cost) btn = '<button type="button" class="btn" disabled>Need '+(r.cost-kid.stars)+' more ⭐</button>';
       else if (r.pre) btn = '<button type="button" class="btn sun" data-redeem="'+r.id+'">Get it now! 🎉</button>';
       else btn = '<button type="button" class="btn coral" data-redeem="'+r.id+'">I want this!</button>';
       return '<div class="card"><div class="card-top"><span class="card-emoji">'+esc(r.emoji)+'</span>'
@@ -652,16 +802,18 @@
     });
   }
   function redeem(rewardId, ev){
+    var kid = activeKid();
+    if (!kid){ toast("Add a child in Parent controls first."); return; }
     var r = null; state.rewards.forEach(function(x){ if (x.id===rewardId) r=x; });
-    if (!r || state.stars < r.cost) return;
+    if (!r || kid.stars < r.cost) return;
     if (r.pre){
-      state.stars -= r.cost; clampStars();
-      logEvent("redeem", r.name+" (pre-approved)", -r.cost);
+      kid.stars -= r.cost; if (kid.stars < 0) kid.stars = 0;
+      logEvent("redeem", r.name+" (pre-approved)", -r.cost, kid);
       save();
       if (ev && ev.clientX) burst(ev.clientX, ev.clientY);
-      toast("🎉 You got: "+r.name+"!");
+      toast("🎉 "+kid.name+" got: "+r.name+"!");
     } else {
-      state.pending.push({id:uid(), rewardId:r.id, cost:r.cost, ts:Date.now()});
+      state.pending.push({id:uid(), rewardId:r.id, cost:r.cost, ts:Date.now(), kidId:kid.id, kidName:kid.name});
       save();
       toast("Sent to a parent for approval 👍");
     }
@@ -678,7 +830,36 @@
     list.innerHTML = state.history.map(function(e){
       var tag = e.type==="bonus" ? '<span class="tag bonus">Bonus</span>' : e.type==="penalty" ? '<span class="tag penalty">Penalty</span>' : e.type==="chore" ? '<span class="tag">Chore</span>' : '<span class="tag">Reward</span>';
       var delta = e.stars > 0 ? '<span class="delta plus">+'+e.stars+' ⭐</span>' : e.stars < 0 ? '<span class="delta minus">'+e.stars+' ⭐</span>' : '<span class="delta">0 ⭐</span>';
-      return '<div class="hist">'+tag+'<span class="grow">'+esc(e.label)+'<span class="when">'+fmtWhen(e.ts)+'</span></span>'+delta+'</div>';
+      return '<div class="hist">'+tag+'<span class="grow">'+esc(e.label)+kidTag(e.kidId, e.kidName)+'<span class="when">'+fmtWhen(e.ts)+'</span></span>'+delta+'</div>';
+    }).join("");
+  }
+
+  function kidOptionsHtml(selectedId){
+    if (!state.kids.length) return '<option value="">No profiles yet — add a child above</option>';
+    return state.kids.map(function(k){
+      return '<option value="'+k.id+'"'+(k.id===selectedId?' selected':'')+'>'+esc(k.emoji)+" "+esc(k.name)+'</option>';
+    }).join("");
+  }
+  function fillKidSelect(sel, preferred){
+    var cur = preferred || sel.value;
+    sel.innerHTML = kidOptionsHtml(cur);
+    if (cur && getKid(cur)) sel.value = cur;
+    sel.disabled = !state.kids.length;
+  }
+  function readAssign(containerId){
+    var ids = [];
+    Array.prototype.forEach.call($(containerId).querySelectorAll("input[type=checkbox]:checked"), function(cb){ ids.push(cb.value); });
+    return ids;
+  }
+  function renderAssign(containerId, selectedIds){
+    var box = $(containerId);
+    if (!state.kids.length){
+      box.innerHTML = '<span class="card-meta">No profiles yet — saved as Everyone until you add kids.</span>';
+      return;
+    }
+    box.innerHTML = state.kids.map(function(k){
+      var checked = selectedIds && selectedIds.indexOf(k.id) !== -1;
+      return '<label class="assign-chip"><input type="checkbox" value="'+k.id+'"'+(checked?' checked':'')+' /> '+esc(k.emoji)+" "+esc(k.name)+'</label>';
     }).join("");
   }
 
@@ -687,18 +868,35 @@
     if (!parentUnlocked){ locked.style.display="block"; body.hidden = true; return; }
     locked.style.display="none"; body.hidden = false;
 
+    // Preserve in-progress form choices across re-renders
+    var choreAssignSel = readAssign("choreAssign");
+    var rewardAssignSel = readAssign("rewardAssign");
+    var bonusKidSel = $("bonusKid").value, penKidSel = $("penKid").value;
+
+    renderProfileList();
+
     var al = $("approvalsList");
     if (!state.pending.length) al.innerHTML = '<p class="hint" style="margin:0;">Nothing waiting right now.</p>';
     else al.innerHTML = state.pending.map(function(p){
       var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
-      return '<div class="manage-item"><span class="grow">Wants: '+esc(r?r.name:"a reward")+'<span class="sub">'+p.cost+' ⭐ · jar has '+state.stars+' ⭐</span></span>'
+      var kid = p.kidId ? getKid(p.kidId) : null;
+      var who = p.kidName || (kid ? kid.name : "A child");
+      var bal = kid ? kid.stars : state.legacyStars;
+      return '<div class="manage-item"><span class="grow">'+esc(who)+' wants: '+esc(r?r.name:"a reward")+'<span class="sub">'+p.cost+' ⭐ · '+(kid ? esc(kid.name)+" has " : "old jar has ")+bal+' ⭐</span></span>'
         + '<button type="button" class="btn primary small" data-approve="'+p.id+'">Yes ✓</button>'
         + '<button type="button" class="btn ghost small danger-zone" data-decline="'+p.id+'">No</button></div>';
     }).join("");
     Array.prototype.forEach.call(al.querySelectorAll("[data-approve]"), function(b){ b.addEventListener("click", function(){ decide(b.getAttribute("data-approve"), true); }); });
     Array.prototype.forEach.call(al.querySelectorAll("[data-decline]"), function(b){ b.addEventListener("click", function(){ decide(b.getAttribute("data-decline"), false); }); });
 
+    fillKidSelect($("bonusKid"), bonusKidSel || (activeKid() ? activeKid().id : ""));
+    fillKidSelect($("penKid"), penKidSel || (activeKid() ? activeKid().id : ""));
+    $("bonusApply").disabled = !state.kids.length;
+    $("penApply").disabled = !state.kids.length;
+
     renderRules();
+    renderAssign("choreAssign", choreAssignSel);
+    renderAssign("rewardAssign", rewardAssignSel);
     renderManageLists();
 
     var has = !!state.pin;
@@ -707,23 +905,56 @@
     $("pinSave").textContent = has ? "Change PIN" : "Save PIN";
   }
 
+  function renderProfileList(){
+    var pl = $("profileList");
+    if (!state.kids.length){
+      pl.innerHTML = '<p class="hint" style="margin:4px 0 0;">No profiles yet — add your first child with the form above.</p>';
+      return;
+    }
+    pl.innerHTML = state.kids.map(function(k){
+      return '<div class="manage-item"><span class="kid-avatar" style="background:'+esc(k.color)+'33; width:44px; height:44px; flex-basis:44px; font-size:23px;">'+esc(k.emoji)+'</span>'
+        + '<span class="grow">'+esc(k.name)+'<span class="sub">'+k.stars+' ⭐ in their jar</span></span>'
+        + '<button type="button" class="btn ghost small" data-kid-edit="'+k.id+'">Edit</button>'
+        + '<button type="button" class="btn ghost small danger-zone" data-del="kid:'+k.id+'">Delete</button></div>';
+    }).join("");
+    Array.prototype.forEach.call(pl.querySelectorAll("[data-kid-edit]"), function(b){
+      b.addEventListener("click", function(){
+        var k = getKid(b.getAttribute("data-kid-edit")); if (!k) return;
+        editKidId = k.id;
+        $("profileName").value = k.name;
+        $("profileEmoji").value = k.emoji;
+        Array.prototype.forEach.call(document.querySelectorAll('input[name="pcolor"]'), function(r){ r.checked = (r.value === k.color); });
+        $("profileSave").textContent = "Save changes";
+        $("profileCancel").hidden = false;
+        $("profileName").focus();
+        $("profilesSection").scrollIntoView({behavior:"smooth", block:"start"});
+      });
+    });
+    wireDeletes(pl);
+  }
+
   function decide(pendingId, ok){
     var idx = -1, p = null;
     state.pending.forEach(function(x,i){ if (x.id===pendingId){ idx=i; p=x; } });
     if (!p) return;
     var r = null; state.rewards.forEach(function(x){ if (x.id===p.rewardId) r=x; });
+    var kid = p.kidId ? getKid(p.kidId) : null;
     state.pending.splice(idx,1);
     if (ok){
-      if (state.stars >= p.cost){
-        state.stars -= p.cost; clampStars();
-        logEvent("redeem", (r?r.name:"Reward")+" (approved)", -p.cost);
+      if (kid && kid.stars >= p.cost){
+        kid.stars -= p.cost; if (kid.stars < 0) kid.stars = 0;
+        logEvent("redeem", (r?r.name:"Reward")+" (approved)", -p.cost, kid);
+        toast("Approved — "+kid.name+" got "+(r?r.name:"the reward")+" 🎉");
+      } else if (!kid && state.legacyStars >= p.cost){
+        state.legacyStars -= p.cost;
+        logEvent("redeem", (r?r.name:"Reward")+" (approved)", -p.cost, null);
         toast("Approved — got "+(r?r.name:"the reward")+" 🎉");
       } else {
-        toast("Not enough stars in the jar anymore — nothing spent.");
+        toast("Not enough stars anymore — nothing spent.");
       }
     } else {
-      logEvent("redeem", (r?r.name:"Reward")+" (not approved — no stars spent)", 0);
-      toast("Declined — stars stay in the jar.");
+      logEvent("redeem", (r?r.name:"Reward")+" (not approved — no stars spent)", 0, kid);
+      toast("Declined — stars stay put.");
     }
     save(); renderAll();
   }
@@ -732,14 +963,14 @@
     var bl = $("bonusRulesList");
     bl.innerHTML = state.bonusRules.length ? state.bonusRules.map(function(r){
       return '<div class="manage-item rule-item"><span class="grow">'+esc(r.name)+'<span class="sub">+'+r.stars+' ⭐</span></span>'
-        + '<button type="button" class="btn primary small apply" data-bonus-rule="'+r.id+'">Give</button>'
+        + '<button type="button" class="btn primary small apply" data-bonus-rule="'+r.id+'"'+(state.kids.length?'':' disabled')+'>Give</button>'
         + '<button type="button" class="btn ghost small" data-bonus-edit="'+r.id+'">Edit</button>'
         + '<button type="button" class="btn ghost small danger-zone" data-del="bonusRule:'+r.id+'">Delete</button></div>';
     }).join("") : '<p class="hint">No bonus rules yet — add one below.</p>';
     var pl = $("penRulesList");
     pl.innerHTML = state.penaltyRules.length ? state.penaltyRules.map(function(r){
       return '<div class="manage-item rule-item"><span class="grow">'+esc(r.name)+'<span class="sub">−'+r.stars+' ⭐</span></span>'
-        + '<button type="button" class="btn coral small apply" data-pen-rule="'+r.id+'">Apply</button>'
+        + '<button type="button" class="btn coral small apply" data-pen-rule="'+r.id+'"'+(state.kids.length?'':' disabled')+'>Apply</button>'
         + '<button type="button" class="btn ghost small" data-pen-edit="'+r.id+'">Edit</button>'
         + '<button type="button" class="btn ghost small danger-zone" data-del="penRule:'+r.id+'">Delete</button></div>';
     }).join("") : '<p class="hint">No penalty rules yet — add one below.</p>';
@@ -751,19 +982,26 @@
     wireDeletes(bl); wireDeletes(pl);
   }
 
+  function selectedKidFor(kind){
+    var sel = kind==="bonus" ? $("bonusKid") : $("penKid");
+    var kid = sel.value ? getKid(sel.value) : activeKid();
+    return kid;
+  }
   function applyRule(kind, ruleId){
+    var kid = selectedKidFor(kind);
+    if (!kid){ toast("Add a child first — bonuses and penalties go to a profile."); return; }
     var list = kind==="bonus" ? state.bonusRules : state.penaltyRules;
     var rule = null; list.forEach(function(r){ if (r.id===ruleId) rule=r; });
     if (!rule) return;
     if (kind==="bonus"){
-      state.stars += rule.stars;
-      logEvent("bonus", rule.name, rule.stars);
-      toast("⭐ +"+rule.stars+" bonus: "+rule.name);
+      kid.stars += rule.stars;
+      logEvent("bonus", rule.name, rule.stars, kid);
+      toast("⭐ +"+rule.stars+" bonus for "+kid.name+": "+rule.name);
     } else {
-      var take = Math.min(rule.stars, state.stars);
-      state.stars -= take; clampStars();
-      logEvent("penalty", rule.name, -take);
-      toast(take>0 ? "−"+take+" ⭐: "+rule.name : "Jar is already at 0 ⭐ — nothing taken.");
+      var take = Math.min(rule.stars, kid.stars);
+      kid.stars -= take; if (kid.stars < 0) kid.stars = 0;
+      logEvent("penalty", rule.name, -take, kid);
+      toast(take>0 ? "−"+take+" ⭐ from "+kid.name+": "+rule.name : kid.name+"'s jar is already at 0 ⭐ — nothing taken.");
     }
     save(); renderAll();
   }
@@ -795,7 +1033,18 @@
     });
   }
   function deleteItem(kind, id){
-    if (kind==="chore"){ state.chores = state.chores.filter(function(c){ return c.id!==id; }); toast("Chore removed."); }
+    if (kind==="kid"){
+      var k = getKid(id);
+      state.kids = state.kids.filter(function(x){ return x.id!==id; });
+      state.pending = state.pending.filter(function(p){ return p.kidId!==id; });
+      Object.keys(state.completions).forEach(function(key){ if (key.split("|")[1]===id) delete state.completions[key]; });
+      state.chores.forEach(function(c){ if (c.kidIds) { c.kidIds = c.kidIds.filter(function(x){ return x!==id; }); if (!c.kidIds.length) c.kidIds = null; } });
+      state.rewards.forEach(function(r){ if (r.kidIds) { r.kidIds = r.kidIds.filter(function(x){ return x!==id; }); if (!r.kidIds.length) r.kidIds = null; } });
+      if (state.activeKidId===id) state.activeKidId = state.kids.length ? state.kids[0].id : null;
+      if (editKidId===id){ editKidId = null; $("profileName").value=""; $("profileSave").textContent="➕ Add Child"; $("profileCancel").hidden = true; }
+      toast((k?k.name:"Profile")+" removed — their history stays in the list.");
+    }
+    else if (kind==="chore"){ state.chores = state.chores.filter(function(c){ return c.id!==id; }); toast("Chore removed."); }
     else if (kind==="reward"){ state.rewards = state.rewards.filter(function(r){ return r.id!==id; }); state.pending = state.pending.filter(function(p){ return p.rewardId!==id; }); toast("Reward removed."); }
     else if (kind==="bonusRule"){ state.bonusRules = state.bonusRules.filter(function(r){ return r.id!==id; }); toast("Bonus rule removed."); }
     else if (kind==="penRule"){ state.penaltyRules = state.penaltyRules.filter(function(r){ return r.id!==id; }); toast("Penalty rule removed."); }
@@ -806,7 +1055,7 @@
     var cl = $("choreManageList");
     cl.innerHTML = state.chores.map(function(c){
       return '<div class="manage-item"><span style="font-size:24px;">'+esc(c.emoji)+'</span><span class="grow">'+esc(c.name)
-        + '<span class="sub">+'+c.stars+' ⭐ · '+c.freq+'</span></span>'
+        + '<span class="sub">+'+c.stars+' ⭐ · '+c.freq+' · For: '+esc(assignLabel(c))+'</span></span>'
         + '<button type="button" class="btn ghost small" data-chore-edit="'+c.id+'">Edit</button>'
         + '<button type="button" class="btn ghost small danger-zone" data-del="chore:'+c.id+'">Delete</button></div>';
     }).join("");
@@ -814,6 +1063,7 @@
       b.addEventListener("click", function(){
         var c = null; state.chores.forEach(function(x){ if (x.id===b.getAttribute("data-chore-edit")) c=x; }); if (!c) return;
         editChoreId = c.id; $("choreName").value = c.name; $("choreEmoji").value = c.emoji; $("choreStars").value = c.stars; $("choreFreq").value = c.freq;
+        renderAssign("choreAssign", c.kidIds || []);
         $("choreSave").textContent = "Save changes"; $("choreCancel").hidden = false; $("choreName").focus();
       });
     });
@@ -821,7 +1071,7 @@
     var rl = $("rewardManageList");
     rl.innerHTML = state.rewards.map(function(r){
       return '<div class="manage-item"><span style="font-size:24px;">'+esc(r.emoji)+'</span><span class="grow">'+esc(r.name)
-        + '<span class="sub">'+r.cost+' ⭐ · '+(r.pre ? "⚡ pre-approved" : "needs approval")+'</span></span>'
+        + '<span class="sub">'+r.cost+' ⭐ · '+(r.pre ? "⚡ pre-approved" : "needs approval")+' · For: '+esc(assignLabel(r))+'</span></span>'
         + '<button type="button" class="btn ghost small" data-reward-edit="'+r.id+'">Edit</button>'
         + '<button type="button" class="btn ghost small danger-zone" data-del="reward:'+r.id+'">Delete</button></div>';
     }).join("");
@@ -829,6 +1079,7 @@
       b.addEventListener("click", function(){
         var r = null; state.rewards.forEach(function(x){ if (x.id===b.getAttribute("data-reward-edit")) r=x; }); if (!r) return;
         editRewardId = r.id; $("rewardName").value = r.name; $("rewardEmoji").value = r.emoji; $("rewardCost").value = r.cost; $("rewardPre").checked = !!r.pre;
+        renderAssign("rewardAssign", r.kidIds || []);
         $("rewardSave").textContent = "Save changes"; $("rewardCancel").hidden = false; $("rewardName").focus();
       });
     });
@@ -848,11 +1099,15 @@
     btn.innerHTML = parentUnlocked ? "🔓 Parent" : "🔒 Parent" + (state.pending.length ? '<span class="badge">'+state.pending.length+'</span>' : "");
     if (name==="parent") renderParent();
   }
+  function goParent(){
+    if (!parentUnlocked && state.pin){ openPin(function(){ showTab("parent"); }); return; }
+    if (!parentUnlocked) parentUnlocked = true;
+    showTab("parent");
+  }
   Array.prototype.forEach.call(document.querySelectorAll(".tab"), function(t){
     t.addEventListener("click", function(){
       var name = t.getAttribute("data-tab");
-      if (name==="parent" && !parentUnlocked && state.pin){ openPin(function(){ showTab("parent"); }); return; }
-      if (name==="parent" && !parentUnlocked && !state.pin){ parentUnlocked = true; }
+      if (name==="parent"){ goParent(); return; }
       showTab(name);
     });
   });
@@ -905,24 +1160,59 @@
     var v = parseInt($(id).value, 10);
     return isNaN(v) || v < 1 ? fallback : v;
   }
+  function pickedColor(){
+    var c = document.querySelector('input[name="pcolor"]:checked');
+    return c ? c.value : "#f2603c";
+  }
+
+  $("profileSave").addEventListener("click", function(){
+    var name = $("profileName").value.trim();
+    if (!name){ toast("Give the child a name first."); $("profileName").focus(); return; }
+    var emoji = $("profileEmoji").value, color = pickedColor();
+    if (editKidId){
+      var k = getKid(editKidId); if (!k) return;
+      // Keep history/pending name snapshots in sync with the new name
+      state.history.forEach(function(e){ if (e.kidId===k.id) e.kidName = name; });
+      state.pending.forEach(function(p){ if (p.kidId===k.id) p.kidName = name; });
+      k.name = name; k.emoji = emoji; k.color = color;
+      toast("Profile updated for "+name+" ✓");
+    } else {
+      var kid = {id:uid(), name:name, emoji:emoji, color:color, stars:0};
+      var moved = 0;
+      if (state.legacyStars > 0){ moved = state.legacyStars; kid.stars = moved; state.legacyStars = 0; }
+      state.kids.push(kid);
+      state.activeKidId = kid.id;
+      if (moved) logEvent("bonus", "Stars from the old shared jar", moved, kid);
+      toast(moved ? (emoji+" "+name+" added — "+moved+" ⭐ from the old shared jar moved over!") : (emoji+" "+name+" added — their jar starts at 0 ⭐"));
+    }
+    editKidId = null; $("profileName").value=""; $("profileSave").textContent="➕ Add Child"; $("profileCancel").hidden = true;
+    save(); renderAll();
+  });
+  $("profileCancel").addEventListener("click", function(){
+    editKidId = null; $("profileName").value=""; $("profileSave").textContent="➕ Add Child"; $("profileCancel").hidden = true;
+  });
 
   $("bonusApply").addEventListener("click", function(){
+    var kid = selectedKidFor("bonus");
+    if (!kid){ toast("Add a child first — bonuses go to a profile."); return; }
     var amt = numVal("bonusAmt", 3);
     var reason = $("bonusReason").value.trim() || "Bonus stars";
-    state.stars += amt;
-    logEvent("bonus", reason, amt);
+    kid.stars += amt;
+    logEvent("bonus", reason, amt, kid);
     $("bonusReason").value = "";
-    save(); toast("⭐ +"+amt+" bonus stars!"); renderAll();
+    save(); toast("⭐ +"+amt+" bonus stars for "+kid.name+"!"); renderAll();
   });
   $("penApply").addEventListener("click", function(){
+    var kid = selectedKidFor("penalty");
+    if (!kid){ toast("Add a child first — penalties come off a profile."); return; }
     var amt = numVal("penAmt", 2);
     var reason = $("penReason").value.trim() || "Penalty";
-    var take = Math.min(amt, state.stars);
-    state.stars -= take; clampStars();
-    logEvent("penalty", reason, -take);
+    var take = Math.min(amt, kid.stars);
+    kid.stars -= take; if (kid.stars < 0) kid.stars = 0;
+    logEvent("penalty", reason, -take, kid);
     $("penReason").value = "";
     save();
-    toast(take>0 ? "−"+take+" ⭐: "+reason : "Jar is already at 0 ⭐ — nothing taken.");
+    toast(take>0 ? "−"+take+" ⭐ from "+kid.name+": "+reason : kid.name+"'s jar is already at 0 ⭐ — nothing taken.");
     renderAll();
   });
 
@@ -956,35 +1246,39 @@
   $("choreSave").addEventListener("click", function(){
     var name = $("choreName").value.trim(); if (!name){ toast("Give the chore a name."); return; }
     var stars = numVal("choreStars", 2), freq = $("choreFreq").value, emoji = $("choreEmoji").value;
+    var ids = readAssign("choreAssign");
+    var kidIds = ids.length ? ids : null;
     if (editChoreId){
-      state.chores.forEach(function(c){ if (c.id===editChoreId){ c.name=name; c.emoji=emoji; c.stars=stars; c.freq=freq; } });
+      state.chores.forEach(function(c){ if (c.id===editChoreId){ c.name=name; c.emoji=emoji; c.stars=stars; c.freq=freq; c.kidIds=kidIds; } });
       toast("Chore updated.");
     } else {
-      state.chores.push({id:uid(), name:name, emoji:emoji, stars:stars, freq:freq});
+      state.chores.push({id:uid(), name:name, emoji:emoji, stars:stars, freq:freq, kidIds:kidIds});
       toast("Chore added.");
     }
-    editChoreId = null; $("choreName").value=""; $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
+    editChoreId = null; $("choreName").value=""; renderAssign("choreAssign", []); $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
     save(); renderAll();
   });
   $("choreCancel").addEventListener("click", function(){
-    editChoreId = null; $("choreName").value=""; $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
+    editChoreId = null; $("choreName").value=""; renderAssign("choreAssign", []); $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
   });
 
   $("rewardSave").addEventListener("click", function(){
     var name = $("rewardName").value.trim(); if (!name){ toast("Give the reward a name."); return; }
     var cost = numVal("rewardCost", 15), emoji = $("rewardEmoji").value, pre = $("rewardPre").checked;
+    var ids = readAssign("rewardAssign");
+    var kidIds = ids.length ? ids : null;
     if (editRewardId){
-      state.rewards.forEach(function(r){ if (r.id===editRewardId){ r.name=name; r.emoji=emoji; r.cost=cost; r.pre=pre; } });
+      state.rewards.forEach(function(r){ if (r.id===editRewardId){ r.name=name; r.emoji=emoji; r.cost=cost; r.pre=pre; r.kidIds=kidIds; } });
       toast("Reward updated.");
     } else {
-      state.rewards.push({id:uid(), name:name, emoji:emoji, cost:cost, pre:pre});
+      state.rewards.push({id:uid(), name:name, emoji:emoji, cost:cost, pre:pre, kidIds:kidIds});
       toast("Reward added.");
     }
-    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
+    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; renderAssign("rewardAssign", []); $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
     save(); renderAll();
   });
   $("rewardCancel").addEventListener("click", function(){
-    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
+    editRewardId = null; $("rewardName").value=""; $("rewardPre").checked=false; renderAssign("rewardAssign", []); $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
   });
 
   $("pinSave").addEventListener("click", function(){
@@ -1005,7 +1299,6 @@
   });
 
   $("loadDefaults").addEventListener("click", function(){
-    var d = defaultData();
     var added = 0;
     function mergeByName(list, defaults){
       defaults.forEach(function(item){
@@ -1013,10 +1306,10 @@
         if (!exists){ list.push(item); added++; }
       });
     }
-    mergeByName(state.chores, d.chores);
-    mergeByName(state.rewards, d.rewards);
-    mergeByName(state.bonusRules, d.bonusRules);
-    mergeByName(state.penaltyRules, d.penaltyRules);
+    mergeByName(state.chores, starterChores());
+    mergeByName(state.rewards, starterRewards());
+    mergeByName(state.bonusRules, starterBonus());
+    mergeByName(state.penaltyRules, starterPenalty());
     save(); toast(added ? "Starter pack added ("+added+" new items)." : "Starter pack is already fully loaded."); renderAll();
   });
   $("resetAll").addEventListener("click", function(){
@@ -1025,11 +1318,12 @@
       localStorage.removeItem(KEY);
       state = defaultData(); save();
       parentUnlocked = false;
-      editChoreId = editRewardId = editBonusRuleId = editPenRuleId = null;
+      editKidId = editChoreId = editRewardId = editBonusRuleId = editPenRuleId = null;
+      $("profileName").value=""; $("profileSave").textContent="➕ Add Child"; $("profileCancel").hidden = true;
       btn.removeAttribute("data-armed"); btn.textContent = "Erase everything & start over"; btn.classList.remove("confirming");
-      toast("Fresh chart loaded — starter chores are ready ⭐"); showTab("chores"); renderAll();
+      toast("Fresh chart loaded — starter chores are ready, add your kids ⭐"); showTab("chores"); renderAll();
     } else {
-      btn.setAttribute("data-armed","1"); btn.textContent = "Tap again — this erases all stars & history"; btn.classList.add("confirming");
+      btn.setAttribute("data-armed","1"); btn.textContent = "Tap again — this erases all profiles, stars & history"; btn.classList.add("confirming");
       setTimeout(function(){ btn.removeAttribute("data-armed"); btn.textContent="Erase everything & start over"; btn.classList.remove("confirming"); }, 3500);
     }
   });
@@ -1037,16 +1331,20 @@
   $("undoBtn").addEventListener("click", function(){
     var e = state.history[0];
     if (!e){ toast("Nothing to undo."); return; }
-    if (e.stars){ state.stars -= e.stars; clampStars(); }
-    if (e.type==="chore" && e.choreId && e.freq!=="anytime"){
-      delete state.completions[e.choreId+"|"+e.pkey];
+    if (e.stars){
+      var kid = e.kidId ? getKid(e.kidId) : null;
+      if (kid){ kid.stars -= e.stars; if (kid.stars < 0) kid.stars = 0; }
+      else if (!e.kidId){ state.legacyStars = Math.max(0, state.legacyStars - e.stars); }
+    }
+    if (e.type==="chore" && e.choreId && e.freq!=="anytime" && e.kidId){
+      delete state.completions[e.choreId+"|"+e.kidId+"|"+e.pkey];
     }
     state.history.shift();
     save(); toast("Undone: "+e.label); renderAll();
   });
 
   function renderAll(){
-    renderJar(); renderChores(); renderRewards(); renderHistory();
+    renderProfilesHeader(); renderChores(); renderRewards(); renderHistory();
     if (currentTab==="parent") renderParent();
     var btn = $("parentTabBtn");
     btn.innerHTML = parentUnlocked ? "🔓 Parent" : "🔒 Parent" + (state.pending.length ? '<span class="badge">'+state.pending.length+'</span>' : "");
