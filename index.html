@@ -186,6 +186,13 @@
   .rule-item .apply{margin-left:auto;}
   .subhead{font-family:"Baloo 2",sans-serif; font-size:19px; font-weight:800; margin:16px 0 8px;}
   .subhead:first-of-type{margin-top:2px;}
+  .backup-textarea{width:100%; min-height:96px; padding:11px 12px; border:2px solid var(--line); border-radius:11px; background:var(--surface); resize:vertical; line-height:1.4;}
+  .backup-textarea::placeholder{color:var(--ink-soft);}
+  .import-preview{background:var(--sun-soft); border:2px solid var(--sun); border-radius:13px; padding:13px 14px; margin-top:12px;}
+  .import-preview strong{font-weight:900;}
+  .import-preview p{margin:4px 0 10px; font-weight:700; font-size:14.5px; color:var(--ink-soft);}
+  .import-preview ul{margin:6px 0 10px 18px; padding:0; font-weight:800; font-size:14.5px;}
+  .file-input-hidden{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
 
   .history-list{display:flex; flex-direction:column; gap:8px;}
   .hist{
@@ -419,13 +426,38 @@
           <button class="btn ghost small danger-zone" id="pinRemove" type="button" hidden>Remove PIN</button>
           <button class="btn ghost small" id="lockNow" type="button">Lock Parent mode now</button>
         </div>
+        <h3 class="subhead">Backup — move stars to another link or device</h3>
+        <p class="hint">The Muse link and the GitHub link are different sites, so each keeps its own chart and stars don't move on their own. Export a backup here, then open the other link and import it there. The backup file includes all profiles and star balances, chores, rewards, bonus &amp; penalty rules, pending approvals, and history.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+          <button class="btn sun small" id="exportBackup" type="button">⬇ Export backup</button>
+          <button class="btn primary small" id="importFileBtn" type="button">⬆ Import backup — choose file</button>
+          <input class="file-input-hidden" type="file" id="importFile" accept=".json,application/json,text/plain" aria-label="Choose a StarJar backup file" />
+        </div>
+        <div class="field">
+          <label for="importText">Or paste a backup</label>
+          <textarea class="backup-textarea" id="importText" placeholder='Paste the backup JSON here, then tap “Import from pasted backup”…' spellcheck="false"></textarea>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <button class="btn ghost small" id="importPasteBtn" type="button">Import from pasted backup</button>
+        </div>
+        <div class="import-preview" id="importPreview" hidden>
+          <strong>Ready to import?</strong>
+          <p id="importSummary">This will replace the current chart.</p>
+          <ul id="importDetails"></ul>
+          <p>Importing replaces everything on this link — profiles, balances, chores, rewards, rules, pending approvals, and history. This can't be undone unless you export a backup of this chart first.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn coral small" id="importConfirm" type="button">Yes, import &amp; replace this chart</button>
+            <button class="btn ghost small" id="importCancel" type="button">Cancel import</button>
+          </div>
+        </div>
+
         <h3 class="subhead">Starter pack &amp; reset</h3>
         <p class="hint">The starter pack adds the default chores, rewards, bonus rules, and penalty rules. Anything you already have won't be duplicated. Erasing starts over with the starter lists, no profiles, and empty balances.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn ghost small" id="loadDefaults" type="button">Add starter pack</button>
           <button class="btn ghost small danger-zone" id="resetAll" type="button">Erase everything &amp; start over</button>
         </div>
-        <p class="hint" style="margin-top:14px;">This chart saves on this device only. Open it in Safari on iPad or Silk on Kindle Fire, then use “Add to Home Screen” to keep it on the home screen like an app. Each device keeps its own chart — stars don't sync between devices.</p>
+        <p class="hint" style="margin-top:14px;">This chart saves on this device only, on the link you open it from. Open it in Safari on iPad or Silk on Kindle Fire, then use “Add to Home Screen” to keep it on the home screen like an app. Use Export / Import above to move the chart between the Muse link and the GitHub link, or between devices.</p>
       </div>
 
     </div>
@@ -1296,6 +1328,204 @@
       $("pinRemove").setAttribute("data-armed","1"); $("pinRemove").textContent = "Tap again to remove PIN"; $("pinRemove").classList.add("confirming");
       setTimeout(function(){ $("pinRemove").removeAttribute("data-armed"); $("pinRemove").textContent="Remove PIN"; $("pinRemove").classList.remove("confirming"); }, 3000);
     }
+  });
+
+  // ----- Export / Import backup -----
+  var pendingImport = null; // { data: sanitizedState, exportedAt: string|null, source: string }
+
+  function backupPayload(){
+    return {
+      app: "StarJar",
+      kind: "starjar-backup",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      data: {
+        _v: 4,
+        kids: state.kids,
+        activeKidId: state.activeKidId,
+        legacyStars: state.legacyStars || 0,
+        chores: state.chores,
+        rewards: state.rewards,
+        bonusRules: state.bonusRules,
+        penaltyRules: state.penaltyRules,
+        history: state.history,
+        pending: state.pending,
+        completions: state.completions || {},
+        pin: state.pin || ""
+      }
+    };
+  }
+
+  function sanitizeImported(raw){
+    if (!raw || typeof raw !== "object") return null;
+    var d = (raw.data && typeof raw.data === "object") ? raw.data : raw;
+    // Must look like a StarJar chart: at least chores or kids present
+    if (!Array.isArray(d.chores) && !Array.isArray(d.kids) && !Array.isArray(d.rewards)) return null;
+    var kids = Array.isArray(d.kids) ? d.kids.filter(function(k){ return k && k.name; }).map(function(k){
+      return {id:k.id||uid(), name:String(k.name).slice(0,60), emoji:k.emoji||"🦊", color:k.color||"#f2603c", stars:(typeof k.stars==="number"&&k.stars>0)?Math.floor(k.stars):0};
+    }) : [];
+    var chores = Array.isArray(d.chores) ? d.chores.filter(function(c){ return c && c.name; }).map(function(c){ return cleanItem(c,false); }) : [];
+    if (!chores.length) chores = starterChores();
+    var rewards = Array.isArray(d.rewards) ? d.rewards.filter(function(r){ return r && r.name; }).map(function(r){ return cleanItem(r,true); }) : starterRewards();
+    if (!rewards.length) rewards = starterRewards();
+    var bonusRules = Array.isArray(d.bonusRules) ? d.bonusRules.filter(function(r){ return r && r.name; }).map(function(r){ return {id:r.id||uid(), name:String(r.name), stars:(typeof r.stars==="number"?r.stars:2)}; }) : [];
+    var penaltyRules = Array.isArray(d.penaltyRules) ? d.penaltyRules.filter(function(r){ return r && r.name; }).map(function(r){ return {id:r.id||uid(), name:String(r.name), stars:(typeof r.stars==="number"?r.stars:2)}; }) : [];
+    var history = Array.isArray(d.history) ? d.history.slice(0,200).map(function(e){
+      return {id:e.id||uid(), type:e.type||"chore", label:e.label||"", stars:(typeof e.stars==="number"?e.stars:0), ts:(typeof e.ts==="number"?e.ts:Date.now()), kidId:e.kidId||null, kidName:e.kidName||null, choreId:e.choreId, pkey:e.pkey, freq:e.freq};
+    }) : [];
+    var pending = Array.isArray(d.pending) ? d.pending.filter(function(p){ return p && p.rewardId; }).map(function(p){
+      return {id:p.id||uid(), rewardId:p.rewardId, cost:(typeof p.cost==="number"?p.cost:0), ts:(typeof p.ts==="number"?p.ts:Date.now()), kidId:p.kidId||null, kidName:p.kidName||null};
+    }) : [];
+    var completions = (d.completions && typeof d.completions === "object" && !Array.isArray(d.completions)) ? d.completions : {};
+    var activeKidId = d.activeKidId && kids.some(function(k){ return k.id===d.activeKidId; }) ? d.activeKidId : (kids.length ? kids[0].id : null);
+    return {
+      _v: 4,
+      kids: kids,
+      activeKidId: activeKidId,
+      legacyStars: (typeof d.legacyStars==="number" && d.legacyStars>0) ? Math.floor(d.legacyStars) : 0,
+      chores: chores,
+      rewards: rewards,
+      bonusRules: bonusRules,
+      penaltyRules: penaltyRules,
+      history: history,
+      pending: pending,
+      completions: completions,
+      pin: (typeof d.pin==="string" && /^\d{4,6}$/.test(d.pin)) ? d.pin : (typeof d.pin==="string" ? d.pin : "")
+    };
+  }
+
+  function showImportPreview(sanitized, meta){
+    pendingImport = { data: sanitized, exportedAt: meta && meta.exportedAt ? meta.exportedAt : null, source: meta && meta.source ? meta.source : "" };
+    var totalStars = sanitized.kids.reduce(function(sum,k){ return sum+k.stars; }, 0) + (sanitized.legacyStars||0);
+    var whenText = "";
+    if (pendingImport.exportedAt){
+      var dt = new Date(pendingImport.exportedAt);
+      if (!isNaN(dt.getTime())) whenText = " Exported " + dt.toLocaleDateString(undefined,{month:"short", day:"numeric", year:"numeric"}) + " · " + dt.toLocaleTimeString(undefined,{hour:"numeric", minute:"2-digit"}) + ".";
+    }
+    $("importSummary").textContent = "This backup will replace the current chart on this link." + whenText + (pendingImport.source ? " Source: " + pendingImport.source + "." : "");
+    var details = [];
+    if (sanitized.kids.length){
+      details.push(sanitized.kids.length + (sanitized.kids.length===1 ? " profile: " : " profiles: ") + sanitized.kids.map(function(k){ return k.name + " — " + k.stars + " ⭐"; }).join(", "));
+    } else {
+      details.push("No profiles in this backup — chart starts empty, ready to Add a Child");
+    }
+    if (sanitized.legacyStars) details.push(sanitized.legacyStars + " ⭐ in the old shared jar (moves to the first profile added)");
+    details.push("Total stars in backup: " + totalStars + " ⭐");
+    details.push(sanitized.chores.length + " chores · " + sanitized.rewards.length + " rewards");
+    details.push(sanitized.bonusRules.length + " bonus rules · " + sanitized.penaltyRules.length + " penalty rules");
+    details.push(sanitized.pending.length + " pending approval" + (sanitized.pending.length===1?"":"s") + " · " + sanitized.history.length + " history entr" + (sanitized.history.length===1?"y":"ies"));
+    $("importDetails").innerHTML = details.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("");
+    var confirmBtn = $("importConfirm");
+    confirmBtn.removeAttribute("data-armed");
+    confirmBtn.textContent = "Yes, import & replace this chart";
+    confirmBtn.classList.remove("confirming");
+    $("importPreview").hidden = false;
+    $("importPreview").scrollIntoView({behavior:"smooth", block:"nearest"});
+  }
+
+  function hideImportPreview(){
+    pendingImport = null;
+    $("importPreview").hidden = true;
+  }
+
+  function handleImportText(text, sourceLabel){
+    var parsed;
+    try { parsed = JSON.parse(text); }
+    catch(e){ toast("That doesn't look like a StarJar backup — check the file or paste and try again."); hideImportPreview(); return; }
+    var sanitized = sanitizeImported(parsed);
+    if (!sanitized){ toast("That file isn't a StarJar backup — nothing was imported."); hideImportPreview(); return; }
+    var exportedAt = parsed && parsed.exportedAt ? parsed.exportedAt : null;
+    showImportPreview(sanitized, { exportedAt: exportedAt, source: sourceLabel || "" });
+    toast("Backup looks good — check the summary, then confirm the import.");
+  }
+
+  $("exportBackup").addEventListener("click", function(){
+    var payload = backupPayload();
+    var text = JSON.stringify(payload, null, 2);
+    var stamp = todayKey();
+    var filename = "starjar-backup-" + stamp + ".json";
+    var blob = new Blob([text], {type:"application/json"});
+    var file = null;
+    try { file = new File([blob], filename, {type:"application/json"}); } catch(e) { file = null; }
+    function doDownload(){
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      toast("Backup downloaded — import it on the other link to move your stars ⭐");
+    }
+    if (file && navigator.share && navigator.canShare){
+      try {
+        if (navigator.canShare({files:[file]})){
+          navigator.share({files:[file], title:"StarJar backup"}).then(function(){
+            toast("Backup shared — import it on the other link ⭐");
+          }).catch(function(err){
+            // User cancelled the share sheet — don't also download
+            if (err && err.name === "AbortError") return;
+            doDownload();
+          });
+          return;
+        }
+      } catch(e) {}
+    }
+    doDownload();
+  });
+
+  $("importFileBtn").addEventListener("click", function(){ $("importFile").click(); });
+  $("importFile").addEventListener("change", function(){
+    var f = $("importFile").files && $("importFile").files[0];
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      handleImportText(String(reader.result || ""), f.name);
+      $("importFile").value = "";
+    };
+    reader.onerror = function(){ toast("Couldn't read that file — try pasting the backup instead."); $("importFile").value = ""; };
+    reader.readAsText(f);
+  });
+
+  $("importPasteBtn").addEventListener("click", function(){
+    var text = $("importText").value.trim();
+    if (!text){ toast("Paste the backup JSON first."); $("importText").focus(); return; }
+    handleImportText(text, "pasted backup");
+  });
+
+  $("importCancel").addEventListener("click", function(){
+    hideImportPreview();
+    toast("Import cancelled — this chart is unchanged.");
+  });
+
+  $("importConfirm").addEventListener("click", function(){
+    if (!pendingImport){ hideImportPreview(); return; }
+    var btn = $("importConfirm");
+    if (!btn.getAttribute("data-armed")){
+      btn.setAttribute("data-armed","1");
+      btn.textContent = "Tap again — replace everything on this link";
+      btn.classList.add("confirming");
+      setTimeout(function(){
+        if (!pendingImport) return;
+        btn.removeAttribute("data-armed");
+        btn.textContent = "Yes, import & replace this chart";
+        btn.classList.remove("confirming");
+      }, 4000);
+      return;
+    }
+    var imported = pendingImport.data;
+    state = imported;
+    // Reset any in-progress edits that pointed at the old chart
+    editKidId = editChoreId = editRewardId = editBonusRuleId = editPenRuleId = null;
+    $("profileName").value=""; $("profileSave").textContent="➕ Add Child"; $("profileCancel").hidden = true;
+    $("choreName").value=""; $("choreSave").textContent="Add chore"; $("choreCancel").hidden = true;
+    $("rewardName").value=""; $("rewardPre").checked=false; $("rewardSave").textContent="Add reward"; $("rewardCancel").hidden = true;
+    $("importText").value = "";
+    hideImportPreview();
+    save();
+    parentUnlocked = true;
+    var kidCount = state.kids.length;
+    toast(kidCount ? ("Backup imported — " + kidCount + (kidCount===1?" profile":" profiles") + " and their stars are now on this link ⭐") : "Backup imported — chores and history are on this link, add your kids to start ⭐");
+    renderAll();
+    showTab("parent");
   });
 
   $("loadDefaults").addEventListener("click", function(){
